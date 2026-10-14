@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Пятьдесят причин, почему я люблю Аяну. Сотри и прочитай.">
+  <meta name="theme-color" content="#0a0a14">
+  <title>Пятьдесят причин</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    :root { --bg: #0a0a14; --ink: #f6f1ff; --muted: #8f8aaa; --rose: #ff5c8a; --gold: #ffd36b; --violet: #a78bfa; --teal: #4fd1c5; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(50% 35% at 50% 0%, rgba(255,92,138,.14), transparent 70%), radial-gradient(40% 30% at 100% 100%, rgba(167,139,250,.12), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 22px 14px 60px; }
+    header { text-align: center; margin-bottom: 16px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--teal); text-shadow: 0 0 8px rgba(79,209,197,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(24px, 7vw, 36px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px var(--rose), 0 0 30px rgba(255,92,138,.5); }
+    .lead { color: #cfc9e2; font-size: 15px; line-height: 1.55; margin: 0 auto 10px; max-width: 420px; }
+    .lead b { color: var(--gold); }
+    .progress { display: flex; align-items: center; gap: 10px; justify-content: center; font-size: 13px; color: var(--muted); margin-top: 10px; }
+    .bar { width: 160px; height: 6px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; }
+    .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--rose), var(--gold)); border-radius: 99px; transition: width .5s; }
+    .progress b { color: var(--rose); }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    @media (min-width: 520px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+    .card { position: relative; aspect-ratio: 1 / 1.15; border-radius: 16px; overflow: hidden; background: linear-gradient(160deg, #1a1830, #0f0e1c); box-shadow: 0 10px 26px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.06); }
+    .inner { position: absolute; inset: 0; padding: 10px 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .inner .n { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .2em; color: var(--violet); margin-bottom: 6px; }
+    .inner .em { font-size: 22px; margin-bottom: 6px; filter: drop-shadow(0 0 6px rgba(255,92,138,.6)); }
+    .inner .txt { font-family: 'Caveat', cursive; font-size: clamp(15px, 4.2vw, 19px); line-height: 1.2; color: #fff; }
+    .card canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+    .card.open canvas { opacity: 0; pointer-events: none; transition: opacity .5s; }
+    .card.open { box-shadow: 0 10px 26px rgba(0,0,0,.45), 0 0 0 1px rgba(255,92,138,.5), 0 0 18px rgba(255,92,138,.3); animation: pop .4s ease; }
+    @keyframes pop { 50% { transform: scale(1.04); } }
+    .hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .2em; color: rgba(255,255,255,.55); text-transform: uppercase; }
+    .card.touched .hint, .card.open .hint { display: none; }
+
+    .final { display: none; margin-top: 22px; background: linear-gradient(160deg, #1f1536, #141026); border-radius: 22px; padding: 24px 20px; text-align: center; box-shadow: 0 0 0 1px rgba(255,211,107,.35), 0 0 30px rgba(255,211,107,.2); }
+    .final.show { display: block; animation: rise .6s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .final h2 { font-family: 'Caveat', cursive; font-size: 34px; margin: 0 0 8px; color: var(--gold); }
+    .final p { margin: 6px 0; color: #e8e2f5; line-height: 1.55; }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
+    .btn.rose { border-color: var(--rose); box-shadow: 0 0 12px rgba(255,92,138,.5); }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+    .foot a { color: var(--rose); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="tag">стирай пальцем</div>
+      <h1>Пятьдесят причин</h1>
+      <p class="lead">Аяна, под каждой карточкой одна причина, почему я тебя люблю. Их <b>50</b>. Я мог бы написать больше, но тогда бы ты стирала до утра.</p>
+      <div class="progress"><div class="bar"><i id="bar"></i></div><span>открыто <b id="count">0</b> / 50</span></div>
+    </header>
+    <div class="grid" id="grid"></div>
+    <div class="final" id="final">
+      <h2>Это были все пятьдесят.</h2>
+      <p>Но по-честному, причина одна. Это ты.</p>
+      <p>Остальные сорок девять я придумал, чтобы было что стирать.</p>
+      <div class="row"><a class="btn rose" href="../hub/">другие игры →</a><button class="btn" id="resetBtn">стереть заново</button></div>
+    </div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a></div>
+  </div>
+
+<script>
+(() => {
+  const REASONS = [
+    ['😄', 'Как ты смеёшься. Сначала глазами, потом всем остальным.'],
+    ['🌧️', 'Рядом с тобой даже дождь кажется уютным.'],
+    ['☕', 'Ты умеешь превращать обычный кофе в событие.'],
+    ['🙈', 'Как ты смущаешься, когда тебя хвалят. Я из-за этого хвалю чаще.'],
+    ['🎧', 'Твой вкус в музыке. Я подслушал и теперь это мой плейлист.'],
+    ['🌙', 'Ты та, о ком я думаю перед сном. Каждый раз.'],
+    ['✨', 'Как ты замечаешь мелочи, которые все пропускают.'],
+    ['🐱', 'Ты разговариваешь с котами на улице. Это решающий аргумент.'],
+    ['📚', 'Как ты рассказываешь про то, что тебе интересно. Можно слушать бесконечно.'],
+    ['🧣', 'Ты всегда мёрзнешь, а я всегда готов отдать куртку.'],
+    ['🍰', 'Ты честно делишь десерт пополам. Почти честно.'],
+    ['💬', 'С тобой не бывает неловких пауз. Только уютные.'],
+    ['🌸', 'Ты замечаешь, когда что-то зацвело. И показываешь мне.'],
+    ['🚶', 'Ты идёшь чуть медленнее, чем все. Мне так нравится.'],
+    ['🎬', 'Как ты комментируешь фильмы шёпотом. Это лучше самих фильмов.'],
+    ['🕯️', 'Ты делаешь любое место теплее просто тем, что в нём есть.'],
+    ['📸', 'На всех фотографиях ты смотришь не в камеру, а на что-то красивое.'],
+    ['🤝', 'Ты держишь слово. Даже маленькое.'],
+    ['🧩', 'С тобой всё складывается, как будто так и было задумано.'],
+    ['🌅', 'Ты, в общем-то, причина, по которой я теперь люблю утро.'],
+    ['💌', 'Твои сообщения. Я перечитываю, хотя помню наизусть.'],
+    ['🫶', 'Ты добрая по-настоящему, когда никто не смотрит.'],
+    ['😶‍🌫️', 'Ты не притворяешься. Даже когда это было бы проще.'],
+    ['🎈', 'Ты радуешься маленьким вещам так, что они становятся большими.'],
+    ['🌟', 'Когда ты входишь, комната как будто включается.'],
+    ['🧃', 'Ты всегда предложишь половину. Чего угодно.'],
+    ['🏠', 'Рядом с тобой чувство, что я наконец дома.'],
+    ['🎶', 'Ты напеваешь, когда думаешь, что никто не слышит. Я слышу.'],
+    ['🌊', 'С тобой спокойно. Как у моря, когда оно тихое.'],
+    ['🧠', 'Ты умная так, что с тобой хочется становиться лучше.'],
+    ['⏰', 'Ты опаздываешь на пять минут и извиняешься так, что хочется ждать дольше.'],
+    ['🍂', 'Ты наступаешь на хрустящие листья специально. Я тоже.'],
+    ['🫧', 'Твоя привычка поправлять волосы, когда волнуешься.'],
+    ['💗', 'Моё сердце до сих пор сбивается, когда ты пишешь «привет».'],
+    ['📍', 'Ты помнишь, что я говорил три недели назад. Я и сам не помню.'],
+    ['🕊️', 'Ты умеешь прощать. Это редкость.'],
+    ['🔥', 'Ты сильная. Даже когда думаешь, что нет.'],
+    ['🎁', 'Ты даришь не вещи, а внимание. Это дороже.'],
+    ['🙃', 'Ты смеёшься над моими шутками. Даже над плохими. Особенно над плохими.'],
+    ['🚃', 'С тобой любая дорога короткая, даже если ехать час.'],
+    ['🌷', 'Ты красивая. Я знаю, это банально. Но это правда.'],
+    ['🫖', 'Ты заботишься о людях тихо, чтобы они не чувствовали себя должными.'],
+    ['🖇️', 'Ты не бросаешь на полпути. Ни дела, ни людей.'],
+    ['🌌', 'Ты задаёшь вопросы, на которые интересно искать ответы вдвоём.'],
+    ['🛼', 'Ты не боишься выглядеть глупо. И поэтому никогда не выглядишь.'],
+    ['🗺️', 'С тобой хочется планировать. Не вечер, а годы.'],
+    ['🕰️', 'Время с тобой идёт неправильно: быстро, а помнится долго.'],
+    ['🧸', 'Ты бережная. К вещам, к словам, ко мне.'],
+    ['🔭', 'Ты видишь во мне то, чего я сам не замечаю. И это, кажется, правда там есть.'],
+    ['♾️', 'Потому что это ты. Остальные сорок девять были просто поводом сказать это.'],
+  ];
+  const $ = (id) => document.getElementById(id);
+  const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem('ayana.reasons.' + k)) ?? d; } catch { return d; } }, set: (k, v) => { try { localStorage.setItem('ayana.reasons.' + k, JSON.stringify(v)); } catch {} } };
+  let opened = new Set(store.get('opened', []));
+  const grid = $('grid');
+
+  const sync = () => { $('count').textContent = opened.size; $('bar').style.width = (opened.size / REASONS.length * 100) + '%'; store.set('opened', [...opened]); if (opened.size === REASONS.length) { $('final').classList.add('show'); setTimeout(() => $('final').scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); } };
+  const burst = (el) => { const r = el.getBoundingClientRect(); confetti({ particleCount: 24, spread: 70, startVelocity: 18, ticks: 80, scalar: .8, colors: ['#ff5c8a', '#ffd36b', '#a78bfa', '#fff'], origin: { x: (r.left + r.width / 2) / innerWidth, y: (r.top + r.height / 2) / innerHeight } }); };
+
+  const makeCard = (i) => {
+    const [em, txt] = REASONS[i];
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = `<div class="inner"><div class="n">№ ${i + 1}</div><div class="em">${em}</div><div class="txt">${txt}</div></div><canvas></canvas><div class="hint">стереть</div>`;
+    grid.appendChild(card);
+    const cv = card.querySelector('canvas'), c = cv.getContext('2d');
+    if (opened.has(i)) { card.classList.add('open'); return; }
+    const paint = () => {
+      const r = card.getBoundingClientRect(); const dpr = Math.min(2, devicePixelRatio || 1);
+      cv.width = r.width * dpr; cv.height = r.height * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const W = r.width, H = r.height;
+      const g = c.createLinearGradient(0, 0, W, H); const hue = (i * 37) % 360;
+      g.addColorStop(0, `hsl(${hue}, 60%, 70%)`); g.addColorStop(.35, `hsl(${hue + 40}, 70%, 82%)`); g.addColorStop(.6, `hsl(${hue + 90}, 60%, 68%)`); g.addColorStop(1, `hsl(${hue + 140}, 60%, 78%)`);
+      c.fillStyle = g; c.fillRect(0, 0, W, H);
+      c.fillStyle = 'rgba(255,255,255,0.35)'; for (let k = 0; k < 40; k++) { c.beginPath(); c.arc(Math.random() * W, Math.random() * H, Math.random() * 2 + .5, 0, 7); c.fill(); }
+      c.strokeStyle = 'rgba(255,255,255,0.25)'; c.lineWidth = 1; for (let k = -H; k < W; k += 14) { c.beginPath(); c.moveTo(k, 0); c.lineTo(k + H, H); c.stroke(); }
+      c.fillStyle = 'rgba(40,30,70,0.7)'; c.font = `700 ${Math.round(W / 5)}px Manrope, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('💗', W / 2, H / 2 - 6);
+    };
+    paint();
+    let down = false, cleared = 0, checkTimer = null;
+    const scratch = (x, y) => {
+      const r = cv.getBoundingClientRect(); const px = x - r.left, py = y - r.top;
+      c.globalCompositeOperation = 'destination-out'; c.beginPath(); c.arc(px, py, Math.max(14, r.width / 7), 0, Math.PI * 2); c.fill(); c.globalCompositeOperation = 'source-over';
+      card.classList.add('touched');
+      clearTimeout(checkTimer); checkTimer = setTimeout(check, 120);
+    };
+    const check = () => {
+      const w = cv.width, h = cv.height; const step = 6; let clear = 0, total = 0; const d = c.getImageData(0, 0, w, h).data;
+      for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) { total++; if (d[(y * w + x) * 4 + 3] < 40) clear++; }
+      cleared = clear / total;
+      if (cleared > 0.5 && !opened.has(i)) { opened.add(i); card.classList.add('open'); burst(card); sync(); }
+    };
+    cv.addEventListener('pointerdown', (e) => { down = true; cv.setPointerCapture(e.pointerId); scratch(e.clientX, e.clientY); });
+    cv.addEventListener('pointermove', (e) => { if (down) scratch(e.clientX, e.clientY); });
+    cv.addEventListener('pointerup', () => (down = false)); cv.addEventListener('pointercancel', () => (down = false));
+  };
+  REASONS.forEach((_, i) => makeCard(i));
+  sync();
+  $('resetBtn').addEventListener('click', () => { opened = new Set(); store.set('opened', []); grid.innerHTML = ''; $('final').classList.remove('show'); REASONS.forEach((_, i) => makeCard(i)); sync(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+})();
+</script>
+</body>
+</html>

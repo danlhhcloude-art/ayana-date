@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="description" content="Бумажный самолётик летит к Аяне и собирает буквы признания.">
+  <meta name="theme-color" content="#070716">
+  <title>Бумажный самолётик</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink: #f3ecff; --muted: #9d94c7; --rose: #ff4fa3; --cyan: #5ee6ff; --gold: #ffd36b; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; background: #070716; color: var(--ink); overflow: hidden; }
+    body { font-family: 'Manrope', system-ui, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    #hud { position: fixed; top: 0; left: 0; right: 0; z-index: 5; padding: 12px 14px 0; display: none; pointer-events: none; }
+    #hud.show { display: block; }
+    .hearts { font-size: 18px; letter-spacing: 2px; text-align: right; }
+    .phrase { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 6px; }
+    .ch { width: 22px; height: 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 13px; color: transparent; background: rgba(255,255,255,.04); transition: .3s; }
+    .ch.sp { border: 0; background: transparent; width: 10px; }
+    .ch.on { color: #fff; border-color: var(--gold); background: rgba(255,211,107,.18); box-shadow: 0 0 10px rgba(255,211,107,.6); text-shadow: 0 0 8px var(--gold); }
+    .ch.next { border-color: var(--cyan); box-shadow: 0 0 8px rgba(94,230,255,.5); animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: .5; } }
+    #toast { position: fixed; left: 0; right: 0; top: 24vh; text-align: center; z-index: 6; pointer-events: none; font-size: clamp(17px, 4.6vw, 22px); font-weight: 600; color: #fff; text-shadow: 0 0 12px rgba(255,255,255,.6), 0 2px 8px rgba(0,0,0,.7); opacity: 0; transition: opacity .5s; padding: 0 20px; }
+    #toast.show { opacity: 1; }
+    .overlay { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 24px 20px; text-align: center; background: rgba(7,7,22,.55); backdrop-filter: blur(4px); }
+    .overlay.show { display: flex; animation: fadeIn .7s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .panel { max-width: 420px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 11px; letter-spacing: .35em; text-transform: uppercase; color: var(--cyan); text-shadow: 0 0 10px var(--cyan); margin-bottom: 14px; }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(26px, 8vw, 40px); margin: 0 0 10px; color: #fff; text-shadow: 0 0 10px var(--rose), 0 0 30px rgba(255,79,163,.6); }
+    .lead { font-size: 16px; line-height: 1.55; color: #d9d2f5; margin: 0 0 8px; }
+    .hint { font-size: 13px; color: var(--muted); margin: 14px 0 24px; line-height: 1.5; }
+    .hint b { color: var(--gold); }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .06em; color: #fff; background: transparent; border: 2px solid var(--rose); border-radius: 999px; padding: 14px 28px; cursor: pointer; box-shadow: 0 0 12px var(--rose); text-shadow: 0 0 8px var(--rose); text-decoration: none; display: inline-block; margin: 4px; }
+    .btn.cyan { border-color: var(--cyan); box-shadow: 0 0 12px var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+    .btn:active { transform: scale(.96); }
+    .music { position: fixed; bottom: 14px; left: 12px; z-index: 50; width: 38px; height: 38px; border-radius: 50%; background: rgba(11,11,31,.6); border: 1px solid rgba(255,255,255,.2); color: #fff; font-size: 16px; cursor: pointer; display: none; }
+    .music.show { display: block; }
+    .music.on { border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+  </style>
+</head>
+<body>
+  <canvas id="cv"></canvas>
+  <button class="music" id="musicBtn">🔈</button>
+  <div id="hud"><div class="hearts" id="hearts"></div><div class="phrase" id="phrase"></div></div>
+  <div id="toast"></div>
+
+  <div class="overlay show" id="intro">
+    <div class="panel">
+      <div class="tag">самолётик · ветер · буквы</div>
+      <h1>Долети до Аяны</h1>
+      <p class="lead">Я написал тебе кое-что на бумажном самолётике и запустил. Ветер разметал буквы по всему небу.</p>
+      <p class="hint">Собери их <b>по порядку</b>. Облака лучше облетать: у самолётика всего <b>три сердечка</b>.<br>Веди пальцем, мышкой или стрелками.</p>
+      <button class="btn" id="startBtn">Запустить</button>
+    </div>
+  </div>
+  <div class="overlay" id="crash">
+    <div class="panel">
+      <div class="tag">упс</div>
+      <h1 id="crashTitle">Самолётик упал</h1>
+      <p class="lead" id="crashText">Но он бумажный, с ним всё хорошо. Буквы, которые ты собрала, никуда не делись.</p>
+      <button class="btn cyan" id="retryBtn">Запустить снова</button>
+    </div>
+  </div>
+  <div class="overlay" id="win">
+    <div class="panel">
+      <div class="tag">долетело</div>
+      <h1>Аяна, я тебя люблю</h1>
+      <p class="lead">Теперь ты собрала это сама, по буквам. Значит, точно прочитала.</p>
+      <p class="hint">Самолётик можно запустить ещё раз. Буквы будут те же. Слова тоже.</p>
+      <button class="btn" id="againBtn">Ещё раз</button><a class="btn cyan" href="../hub/">Другие игры</a>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  let W = 0, H = 0, DPR = 1;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const PHRASE = 'АЯНА, Я ТЕБЯ ЛЮБЛЮ';
+  const LETTERS = [...PHRASE].filter((c) => /[А-ЯЁ]/.test(c));
+  const DECOYS = 'ВГДЖЗИКМОПРСУФХЦЧШЩЭ';
+
+  /* ---------- аудио ---------- */
+  let ac, master, soundOn = false;
+  const ensure = () => { if (ac) return; ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+    const len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = ac.createBufferSource(); src.buffer = buf; src.loop = true; const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 500; bp.Q.value = 0.6; const g = ac.createGain(); g.gain.value = 0.035; src.connect(bp); bp.connect(g); g.connect(master); src.start();
+    const lfo = ac.createOscillator(); lfo.frequency.value = 0.15; const lg = ac.createGain(); lg.gain.value = 300; lfo.connect(lg); lg.connect(bp.frequency); lfo.start(); };
+  const tone = (f, t, vol = 0.06, dur = 0.9, type = 'sine') => { const o = ac.createOscillator(); o.type = type; o.frequency.value = f; const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.1); };
+  const setSound = (on) => { ensure(); if (ac.state === 'suspended') ac.resume(); soundOn = on; $('musicBtn').textContent = on ? '🎧' : '🔈'; $('musicBtn').classList.toggle('on', on); master.gain.cancelScheduledValues(ac.currentTime); master.gain.linearRampToValueAtTime(on ? 1 : 0, ac.currentTime + 0.4); };
+  $('musicBtn').addEventListener('click', () => setSound(!soundOn));
+  const sfx = { letter: (i) => { if (!soundOn) return; const t = ac.currentTime; tone(523.25 * Math.pow(2, (i % 8) / 12), t, 0.07, 0.8); tone(1046.5, t + 0.08, 0.03, 0.6); }, bad: () => { if (!soundOn) return; tone(180, ac.currentTime, 0.08, 0.5, 'triangle'); tone(120, ac.currentTime + 0.1, 0.08, 0.6, 'triangle'); }, win: () => { if (!soundOn) return; const t = ac.currentTime; [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, t + i * 0.1, 0.08, 1.8)); } };
+
+  /* ---------- состояние ---------- */
+  const G = { phase: 'intro', t: 0, x: 0, tx: 0, vx: 0, hearts: 3, next: 0, items: [], clouds: [], parts: [], stars: [], bg: [], spawnL: 0, spawnC: 0, inv: 0, speed: 1, trail: [], fw: [], last: 0 };
+  const toast = $('toast'); let toastT = null;
+  const say = (t, ms = 1800) => { toast.textContent = t; toast.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toast.classList.remove('show'), ms); };
+
+  const buildPhrase = () => { $('phrase').innerHTML = ''; let li = 0; [...PHRASE].forEach((c) => { const el = document.createElement('div'); if (/[А-ЯЁ]/.test(c)) { el.className = 'ch' + (li < G.next ? ' on' : li === G.next ? ' next' : ''); el.textContent = c; li++; } else { el.className = 'ch sp'; } $('phrase').appendChild(el); }); $('hearts').textContent = '💗'.repeat(G.hearts) + '🖤'.repeat(3 - G.hearts); };
+
+  const resize = () => { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; G.stars = []; for (let i = 0; i < 120; i++) G.stars.push({ x: rnd(0, W), y: rnd(0, H), r: rnd(.5, 1.8), v: rnd(.2, .6), ph: rnd(0, 6) }); G.bg = []; for (let i = 0; i < 7; i++) G.bg.push({ x: rnd(0, W), y: rnd(0, H), w: rnd(120, 260), v: rnd(.3, .7), a: rnd(.04, .09) }); };
+  addEventListener('resize', resize); resize();
+
+  const start = () => {
+    G.phase = 'play'; G.hearts = 3; G.next = 0; G.items = []; G.clouds = []; G.parts = []; G.fw = []; G.spawnL = 0.8; G.spawnC = 2.2; G.inv = 0; G.speed = 1; G.x = G.tx = W / 2; G.trail = [];
+    $('intro').classList.remove('show'); $('crash').classList.remove('show'); $('win').classList.remove('show'); $('hud').classList.add('show'); $('musicBtn').classList.add('show');
+    if (!soundOn) setSound(true);
+    buildPhrase(); say('Собирай буквы по порядку ✈️', 2200);
+  };
+  const retry = () => { G.phase = 'play'; G.hearts = 3; G.items = []; G.clouds = []; G.inv = 2; G.x = G.tx = W / 2; $('crash').classList.remove('show'); buildPhrase(); say('Полетели дальше', 1500); };
+  $('startBtn').addEventListener('click', start); $('retryBtn').addEventListener('click', retry); $('againBtn').addEventListener('click', () => { G.next = 0; start(); });
+
+  /* ---------- управление ---------- */
+  const setT = (x) => { G.tx = Math.max(30, Math.min(W - 30, x)); };
+  let drag = false;
+  addEventListener('pointerdown', (e) => { if (G.phase !== 'play') return; drag = true; setT(e.clientX); });
+  addEventListener('pointermove', (e) => { if (G.phase !== 'play') return; if (drag || e.pointerType === 'mouse') setT(e.clientX); });
+  addEventListener('pointerup', () => (drag = false)); addEventListener('pointercancel', () => (drag = false));
+  const keys = {}; addEventListener('keydown', (e) => (keys[e.key] = true)); addEventListener('keyup', (e) => (keys[e.key] = false));
+
+  /* ---------- спавн ---------- */
+  const spawnLetter = () => { const decoy = Math.random() < 0.3 && G.items.filter((i) => i.ok).length > 0; const ch = decoy ? DECOYS[Math.random() * DECOYS.length | 0] : LETTERS[G.next]; if (!decoy && G.items.some((i) => i.ok)) return; G.items.push({ x: rnd(40, W - 40), y: -40, ch, ok: !decoy, v: rnd(70, 110) * G.speed, ph: rnd(0, 6), drift: rnd(-25, 25) }); };
+  const spawnCloud = () => { G.clouds.push({ x: rnd(0, W), y: -80, w: rnd(90, 160), h: rnd(40, 60), v: rnd(60, 100) * G.speed, drift: rnd(-15, 15), ph: rnd(0, 6) }); };
+  const burst = (x, y, col, n = 20) => { for (let i = 0; i < n; i++) { const a = rnd(0, 6.28), s = rnd(1, 4); G.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, col, r: rnd(1.5, 3.5) }); } };
+  const firework = () => { const x = rnd(W * .2, W * .8), y = rnd(H * .15, H * .5), col = ['#ff4fa3', '#5ee6ff', '#ffd36b', '#fff', '#a78bfa'][Math.random() * 5 | 0]; for (let i = 0; i < 70; i++) { const a = i / 70 * 6.28, s = rnd(2, 5); G.fw.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, col, r: rnd(1.5, 3) }); } };
+
+  /* ---------- рисование ---------- */
+  const drawPlane = (x, y, tilt, inv) => {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(tilt);
+    if (inv > 0 && Math.floor(G.t * 12) % 2) ctx.globalAlpha = 0.35;
+    ctx.shadowBlur = 18; ctx.shadowColor = '#ffffff';
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(0, -26); ctx.lineTo(22, 16); ctx.lineTo(6, 10); ctx.lineTo(0, 20); ctx.lineTo(-6, 10); ctx.lineTo(-22, 16); ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = '#d9d2f5'; ctx.beginPath(); ctx.moveTo(0, -26); ctx.lineTo(6, 10); ctx.lineTo(0, 20); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, -26); ctx.lineTo(0, 20); ctx.stroke();
+    ctx.fillStyle = '#ff4fa3'; ctx.beginPath(); ctx.arc(0, -4, 3, 0, 7); ctx.fill();
+    ctx.restore();
+  };
+  const drawCloud = (c, dark) => {
+    ctx.save(); ctx.translate(c.x, c.y);
+    const g = ctx.createRadialGradient(0, 0, 4, 0, 0, c.w * 0.7); g.addColorStop(0, dark ? '#2a2452' : 'rgba(255,255,255,.14)'); g.addColorStop(1, dark ? '#120f2a' : 'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.beginPath(); for (let i = 0; i < 5; i++) { const px = (i - 2) * c.w / 5, r = c.h * (0.55 + 0.35 * Math.abs(Math.sin(c.ph + i))); ctx.arc(px, Math.sin(c.ph + i * 2) * 6, r, 0, 7); } ctx.fill();
+    if (dark) { ctx.strokeStyle = 'rgba(167,139,250,.35)'; ctx.lineWidth = 1.5; ctx.stroke(); if (Math.random() < 0.02) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, c.h * .4); ctx.lineTo(-8, c.h * .9); ctx.lineTo(4, c.h * 1.1); ctx.lineTo(-4, c.h * 1.6); ctx.stroke(); } }
+    ctx.restore();
+  };
+  const drawLetter = (it) => {
+    ctx.save(); ctx.translate(it.x, it.y + Math.sin(G.t * 3 + it.ph) * 4);
+    const col = it.ok ? '#ffd36b' : '#8f8aaa';
+    ctx.shadowBlur = it.ok ? 22 : 6; ctx.shadowColor = col; ctx.fillStyle = it.ok ? 'rgba(255,211,107,.18)' : 'rgba(143,138,170,.12)'; ctx.beginPath(); ctx.arc(0, 0, 20, 0, 7); ctx.fill();
+    ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.fillStyle = it.ok ? '#fff' : '#bdb6dc'; ctx.font = `700 18px Unbounded, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(it.ch, 0, 1);
+    ctx.restore();
+  };
+
+  /* ---------- цикл ---------- */
+  const loop = (now) => {
+    const dt = Math.min(0.05, (now - G.last) / 1000 || 0); G.last = now; G.t += dt;
+    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#05051a'); g.addColorStop(1, '#1b1240'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const sp = G.phase === 'play' ? 1 : 0.3;
+    for (const s of G.stars) { s.y += s.v * 60 * dt * sp; if (s.y > H) { s.y = -2; s.x = rnd(0, W); } ctx.globalAlpha = 0.5 + 0.5 * Math.sin(G.t * 2 + s.ph); ctx.fillStyle = '#fff'; ctx.fillRect(s.x, s.y, s.r, s.r * 3); }
+    ctx.globalAlpha = 1;
+    for (const b of G.bg) { b.y += b.v * 40 * dt * sp; if (b.y > H + 100) { b.y = -100; b.x = rnd(0, W); } ctx.globalAlpha = b.a; drawCloud({ x: b.x, y: b.y, w: b.w, h: b.w * 0.35, ph: 1 }, false); }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff3dc'; ctx.shadowBlur = 30; ctx.shadowColor = '#fff3dc'; ctx.beginPath(); ctx.arc(W * 0.82, H * 0.12, 18, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
+
+    if (G.phase === 'play') {
+      if (keys.ArrowLeft) setT(G.tx - 9); if (keys.ArrowRight) setT(G.tx + 9);
+      const px = G.x; G.x = lerp(G.x, G.tx, 0.12); G.vx = G.x - px;
+      const py = H * 0.78;
+      G.trail.unshift({ x: G.x, y: py + 22 }); if (G.trail.length > 14) G.trail.pop();
+      ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 6]); ctx.beginPath(); G.trail.forEach((p, i) => { const y = p.y + i * 7; i ? ctx.lineTo(p.x, y) : ctx.moveTo(p.x, y); }); ctx.stroke(); ctx.setLineDash([]);
+      G.inv = Math.max(0, G.inv - dt);
+      G.speed = 1 + G.next * 0.06;
+      G.spawnL -= dt; if (G.spawnL <= 0) { spawnLetter(); G.spawnL = rnd(1.1, 1.8); }
+      G.spawnC -= dt; if (G.spawnC <= 0) { spawnCloud(); G.spawnC = rnd(1.6, 2.6) / G.speed; }
+      for (const c of G.clouds) { c.y += c.v * dt; c.x += c.drift * dt; drawCloud(c, true);
+        if (G.inv <= 0 && Math.abs(c.x - G.x) < c.w * 0.45 && Math.abs(c.y - py) < c.h * 0.7) { G.hearts--; G.inv = 1.6; burst(G.x, py, '#a78bfa', 16); sfx.bad(); buildPhrase(); say(G.hearts > 0 ? ['Ой. Облако.', 'Осторожнее, там гроза.', 'Ещё одно, и упадём.'][3 - G.hearts - 1] : 'Упали…'); if (G.hearts <= 0) { G.phase = 'crash'; setTimeout(() => $('crash').classList.add('show'), 600); } } }
+      G.clouds = G.clouds.filter((c) => c.y < H + 100);
+      for (const it of G.items) { it.y += it.v * dt; it.x += Math.sin(G.t + it.ph) * 20 * dt + it.drift * dt; drawLetter(it);
+        if (!it.got && Math.hypot(it.x - G.x, it.y - py) < 30) { it.got = true; if (it.ok) { G.next++; burst(it.x, it.y, '#ffd36b', 26); sfx.letter(G.next); buildPhrase(); if (G.next >= LETTERS.length) { win(); } else if (LETTERS[G.next - 1] === 'А' && G.next === 4) say('«Аяна» ✓ Теперь самое важное'); } else { burst(it.x, it.y, '#8f8aaa', 8); say('не та буква, лети дальше', 1100); } } }
+      G.items = G.items.filter((it) => !it.got && it.y < H + 60);
+      if (!G.items.some((i) => i.ok) && G.spawnL > 0.6) G.spawnL = 0.6;
+      drawPlane(G.x, py, G.vx * 0.06, G.inv);
+    } else if (G.phase === 'win') {
+      if (Math.random() < 0.05) firework();
+      const py = lerp(H * 0.78, -60, Math.min(1, (G.t - G.winT) / 4)); drawPlane(G.x, py, 0, 0);
+    }
+    ctx.save(); for (const p of G.parts) { ctx.globalAlpha = p.life; ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.life -= 0.03; }
+    for (const p of G.fw) { ctx.globalAlpha = p.life; ctx.fillStyle = p.col; ctx.shadowBlur = 6; ctx.shadowColor = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, 7); ctx.fill(); p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.vx *= 0.985; p.vy *= 0.985; p.life -= 0.012; } ctx.restore();
+    G.parts = G.parts.filter((p) => p.life > 0); G.fw = G.fw.filter((p) => p.life > 0);
+    ctx.restore(); requestAnimationFrame(loop);
+  };
+  const win = () => { G.phase = 'win'; G.winT = G.t; sfx.win(); for (let i = 0; i < 4; i++) setTimeout(firework, i * 300); setTimeout(() => $('win').classList.add('show'), 2200); };
+  buildPhrase();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

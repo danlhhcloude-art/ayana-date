@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Найди пары и открой наши будущие воспоминания.">
+  <meta name="theme-color" content="#0a0a14">
+  <title>Будущие воспоминания</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    :root { --bg: #0a0a14; --ink: #f6f1ff; --muted: #8f8aaa; --rose: #ff5c8a; --gold: #ffd36b; --violet: #a78bfa; --teal: #4fd1c5; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(50% 35% at 50% 0%, rgba(167,139,250,.16), transparent 70%), radial-gradient(40% 30% at 0% 100%, rgba(79,209,197,.10), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 22px 14px 60px; }
+    header { text-align: center; margin-bottom: 14px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--violet); text-shadow: 0 0 8px rgba(167,139,250,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(22px, 6.5vw, 32px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px var(--violet), 0 0 30px rgba(167,139,250,.5); }
+    .lead { color: #cfc9e2; font-size: 15px; line-height: 1.55; margin: 0 auto; max-width: 400px; }
+    .stats { display: flex; justify-content: center; gap: 18px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+    .stats b { color: var(--gold); }
+
+    .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; perspective: 900px; }
+    .tile { aspect-ratio: 3 / 4; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.2,.8,.2,1); }
+    .tile.flip { transform: rotateY(180deg); }
+    .face { position: absolute; inset: 0; border-radius: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(0,0,0,.45); }
+    .back { background: linear-gradient(160deg, #1d1838, #120f24); border: 1px solid rgba(255,255,255,.08); overflow: hidden; }
+    .back::before { content: '💗'; font-size: 22px; opacity: .25; filter: grayscale(.2); }
+    .back::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, transparent 0 10px, rgba(255,255,255,.03) 10px 12px); }
+    .front { transform: rotateY(180deg); background: linear-gradient(160deg, #fff7fb, #ffe3ee); color: #4a1e35; padding: 6px; text-align: center; }
+    .front .em { font-size: clamp(26px, 8vw, 38px); }
+    .front .w { font-family: 'Caveat', cursive; font-size: clamp(14px, 4vw, 18px); line-height: 1.1; margin-top: 4px; font-weight: 700; }
+    .tile.done .front { background: linear-gradient(160deg, #fff3cf, #ffd36b); box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(255,211,107,.6); }
+    .tile.done { animation: bump .4s ease; }
+    @keyframes bump { 50% { transform: rotateY(180deg) scale(1.08); } }
+    .tile.shake { animation: shake .4s ease; }
+    @keyframes shake { 25% { transform: rotateY(180deg) translateX(-4px); } 75% { transform: rotateY(180deg) translateX(4px); } }
+
+    .toast { margin-top: 14px; min-height: 64px; background: linear-gradient(160deg, #171430, #110e22); border-radius: 16px; padding: 12px 16px; text-align: center; border: 1px solid rgba(255,255,255,.06); transition: .3s; }
+    .toast .k { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .25em; color: var(--teal); text-transform: uppercase; }
+    .toast .t { font-family: 'Caveat', cursive; font-size: 22px; color: #fff; margin-top: 4px; line-height: 1.2; }
+    .toast.pop { animation: pop .4s ease; }
+    @keyframes pop { 50% { transform: scale(1.03); } }
+
+    .final { display: none; margin-top: 18px; background: linear-gradient(160deg, #1f1536, #141026); border-radius: 22px; padding: 24px 20px; text-align: center; box-shadow: 0 0 0 1px rgba(255,211,107,.35), 0 0 30px rgba(255,211,107,.2); }
+    .final.show { display: block; animation: rise .6s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .final h2 { font-family: 'Caveat', cursive; font-size: 34px; margin: 0 0 8px; color: var(--gold); }
+    .final p { margin: 6px 0; color: #e8e2f5; line-height: 1.55; }
+    .final ol { text-align: left; margin: 12px auto 0; padding-left: 22px; max-width: 320px; color: #d9d2f5; font-size: 14px; line-height: 1.7; }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
+    .btn.gold { border-color: var(--gold); box-shadow: 0 0 12px rgba(255,211,107,.5); color: #fff; }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+    .foot a { color: var(--rose); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="tag">найди пары</div>
+      <h1>Будущие воспоминания</h1>
+      <p class="lead">Аяна, под карточками спрятано восемь вечеров, которые я хочу провести с тобой. Найди пару, и один из них откроется.</p>
+      <div class="stats"><span>ходов <b id="moves">0</b></span><span>открыто <b id="found">0</b> / 8</span><span>время <b id="time">0:00</b></span></div>
+    </header>
+    <div class="board" id="board"></div>
+    <div class="toast" id="toast"><div class="k">подсказка</div><div class="t">Переверни две карточки. Если совпали, они останутся открытыми.</div></div>
+    <div class="final" id="final">
+      <h2>Все восемь открыты.</h2>
+      <p>Теперь это не карточки, а план. Я записал:</p>
+      <ol id="plan"></ol>
+      <p style="margin-top:14px">Начнём с любого. Выбирай ты.</p>
+      <div class="row"><a class="btn gold" href="../hub/">другие игры →</a><button class="btn" id="againBtn">сыграть ещё</button></div>
+    </div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a></div>
+  </div>
+
+<script>
+(() => {
+  const PAIRS = [
+    ['☕', 'кофе на двоих', 'Кофе в том месте, где играет тихая музыка, и мы сидим, пока не закроют.'],
+    ['🌧️', 'один зонт', 'Дождь, один зонт на двоих и спор, кто из нас больше промок.'],
+    ['🎬', 'последний сеанс', 'Последний сеанс в полупустом зале. Можно комментировать шёпотом.'],
+    ['🍜', 'рамен в два ночи', 'Горячий рамен в два часа ночи, потому что мы заговорились и забыли поесть.'],
+    ['🌅', 'рассвет на крыше', 'Не спать всю ночь и встретить рассвет на крыше. С пледом. И с тобой.'],
+    ['❄️', 'первый снег', 'Выйти на улицу в первый снег просто так. Ловить снежинки языком.'],
+    ['🎡', 'колесо обозрения', 'Колесо обозрения вечером, когда город внизу весь в огнях.'],
+    ['🎆', 'салют в августе', 'Салют в августе, за который не надо платить. Просто быть в нужном месте.'],
+  ];
+  const $ = (id) => document.getElementById(id);
+  const shuffle = (a) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  const board = $('board'), toast = $('toast');
+  let first = null, lock = false, moves = 0, found = 0, t0 = 0, timer = null, foundList = [];
+
+  const say = (k, t) => { toast.innerHTML = `<div class="k">${k}</div><div class="t">${t}</div>`; toast.classList.remove('pop'); void toast.offsetWidth; toast.classList.add('pop'); };
+  const tick = () => { const s = Math.floor((Date.now() - t0) / 1000); $('time').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  const burst = (el) => { const r = el.getBoundingClientRect(); confetti({ particleCount: 30, spread: 80, startVelocity: 20, ticks: 90, scalar: .9, colors: ['#ffd36b', '#ff5c8a', '#a78bfa', '#fff'], origin: { x: (r.left + r.width / 2) / innerWidth, y: (r.top + r.height / 2) / innerHeight } }); };
+
+  const build = () => {
+    board.innerHTML = ''; first = null; lock = false; moves = 0; found = 0; foundList = []; t0 = 0; clearInterval(timer); timer = null;
+    $('moves').textContent = 0; $('found').textContent = 0; $('time').textContent = '0:00'; $('final').classList.remove('show');
+    say('подсказка', 'Переверни две карточки. Если совпали, они останутся открытыми.');
+    const deck = shuffle(PAIRS.flatMap((p, i) => [i, i]));
+    deck.forEach((pi) => {
+      const [em, w] = PAIRS[pi];
+      const tile = document.createElement('div'); tile.className = 'tile'; tile.dataset.p = pi;
+      tile.innerHTML = `<div class="face back"></div><div class="face front"><div class="em">${em}</div><div class="w">${w}</div></div>`;
+      tile.addEventListener('click', () => flip(tile));
+      board.appendChild(tile);
+    });
+  };
+  const flip = (tile) => {
+    if (lock || tile.classList.contains('flip')) return;
+    if (!timer) { t0 = Date.now(); timer = setInterval(tick, 500); }
+    tile.classList.add('flip');
+    if (!first) { first = tile; return; }
+    moves++; $('moves').textContent = moves;
+    const a = first, b = tile; first = null;
+    if (a.dataset.p === b.dataset.p) {
+      const [em, w, story] = PAIRS[+a.dataset.p];
+      found++; $('found').textContent = found; foundList.push(story);
+      setTimeout(() => { a.classList.add('done'); b.classList.add('done'); burst(b); say(`воспоминание № ${found} · ${w}`, story); if (found === PAIRS.length) finish(); }, 350);
+    } else {
+      lock = true;
+      setTimeout(() => { a.classList.add('shake'); b.classList.add('shake'); }, 450);
+      setTimeout(() => { a.classList.remove('flip', 'shake'); b.classList.remove('flip', 'shake'); lock = false; }, 1050);
+      say('не пара', ['Почти. Я тоже не с первого раза всё запоминаю.', 'Не совпало. Зато ты теперь знаешь, где что лежит.', 'Мимо. Ничего, у нас много попыток. На всё.'][moves % 3]);
+    }
+  };
+  const finish = () => {
+    clearInterval(timer); timer = null;
+    $('plan').innerHTML = foundList.map((s) => `<li>${s}</li>`).join('');
+    $('final').classList.add('show');
+    confetti({ particleCount: 140, spread: 100, startVelocity: 30, ticks: 160, colors: ['#ffd36b', '#ff5c8a', '#a78bfa', '#4fd1c5', '#fff'], origin: { y: 0.6 } });
+    setTimeout(() => $('final').scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+  };
+  $('againBtn').addEventListener('click', () => { build(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  build();
+})();
+</script>
+</body>
+</html>

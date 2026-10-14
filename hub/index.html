@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Все игры, которые я сделал для Аяны.">
+  <meta name="theme-color" content="#0a0a14">
+  <title>Игры для Аяны</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0a0a14; --ink: #f6f1ff; --muted: #8f8aaa; --rose: #ff5c8a; --gold: #ffd36b; --violet: #a78bfa; --teal: #4fd1c5; --cyan: #5ee6ff; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(50% 35% at 50% 0%, rgba(255,92,138,.14), transparent 70%), radial-gradient(40% 30% at 100% 100%, rgba(94,230,255,.10), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 28px 16px 60px; }
+    header { text-align: center; margin-bottom: 22px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--teal); text-shadow: 0 0 8px rgba(79,209,197,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(26px, 8vw, 40px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px var(--rose), 0 0 30px rgba(255,92,138,.5); }
+    .lead { color: #cfc9e2; font-size: 15px; line-height: 1.55; margin: 0 auto; max-width: 400px; }
+    .list { display: grid; gap: 12px; }
+    .game { display: flex; gap: 14px; align-items: center; text-decoration: none; color: inherit; background: linear-gradient(160deg, #171430, #110e22); border: 1px solid rgba(255,255,255,.07); border-radius: 20px; padding: 14px 16px; transition: .2s; position: relative; overflow: hidden; }
+    .game::after { content: '→'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 20px; transition: .2s; }
+    .game:hover { transform: translateY(-2px); border-color: var(--c); box-shadow: 0 0 22px color-mix(in srgb, var(--c) 35%, transparent); }
+    .game:hover::after { color: var(--c); right: 12px; }
+    .ic { width: 54px; height: 54px; border-radius: 16px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 28px; background: color-mix(in srgb, var(--c) 18%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent), 0 0 16px color-mix(in srgb, var(--c) 25%, transparent); }
+    .game h3 { margin: 0 0 3px; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 15px; color: #fff; }
+    .game p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; padding-right: 22px; }
+    .num { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .2em; color: var(--c); margin-bottom: 4px; }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; line-height: 1.7; }
+    .foot b { color: var(--rose); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="tag">меню</div>
+      <h1>Игры для Аяны</h1>
+      <p class="lead">Пять маленьких игр и одна большая причина. Начинай с любой.</p>
+    </header>
+    <div class="list">
+      <a class="game" href="../" style="--c: var(--rose)"><div class="ic">☔</div><div><div class="num">01 · ночной город</div><h3>Семь звёзд</h3><p>Лови звёзды на зонт под дождём. Созвездие соберётся в сердце, а в конце один вопрос.</p></div></a>
+      <a class="game" href="../kino/" style="--c: var(--gold)"><div class="ic">🎬</div><div><div class="num">02 · кинотеатр</div><h3>Слова и кино</h3><p>«Я тебя люблю» на 55 языках и фильмы, которых не существует, где тебе признаются в любви.</p></div></a>
+      <a class="game" href="../reasons/" style="--c: var(--teal)"><div class="ic">💗</div><div><div class="num">03 · скретч</div><h3>Пятьдесят причин</h3><p>Стирай карточки пальцем. Под каждой причина, почему я тебя люблю.</p></div></a>
+      <a class="game" href="../memory/" style="--c: var(--violet)"><div class="ic">🎡</div><div><div class="num">04 · пары</div><h3>Будущие воспоминания</h3><p>Найди пары и открой восемь вечеров, которые я хочу провести с тобой.</p></div></a>
+      <a class="game" href="../plane/" style="--c: var(--cyan)"><div class="ic">✈️</div><div><div class="num">05 · аркада</div><h3>Бумажный самолётик</h3><p>Лети сквозь ночь, облетай грозовые облака и собирай по буквам то, что я хотел сказать.</p></div></a>
+    </div>
+    <div class="foot">Всё это нарисовано и написано вручную, для одной тебя.<br><b>Аяна</b>, спасибо, что дочитала досюда.</div>
+  </div>
+</body>
+</html>
