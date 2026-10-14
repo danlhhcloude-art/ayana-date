@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Кинотеатр для Аяны: слова о любви на всех языках и фильмы, которых ещё не сняли.">
+  <meta name="theme-color" content="#0a0a12">
+  <title>Кинотеатр для Аяны</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a12; --panel: #12121f; --ink: #f4efe6; --muted: #8e89a6;
+      --amber: #ffb648; --rose: #ff5c8a; --teal: #4fd1c5; --violet: #a78bfa;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(60% 40% at 50% 0%, rgba(255,182,72,.12), transparent 70%), radial-gradient(40% 30% at 90% 90%, rgba(255,92,138,.10), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 18px 16px 48px; }
+
+    header { text-align: center; margin-bottom: 14px; }
+    .marquee { display: inline-block; border: 2px solid var(--amber); border-radius: 14px; padding: 10px 18px; box-shadow: 0 0 18px rgba(255,182,72,.35), inset 0 0 18px rgba(255,182,72,.12); position: relative; }
+    .marquee::before, .marquee::after { content: ''; position: absolute; left: 8px; right: 8px; height: 4px; background-image: radial-gradient(circle, var(--amber) 1.5px, transparent 2px); background-size: 12px 4px; animation: bulbs 1s steps(2) infinite; }
+    .marquee::before { top: 3px; } .marquee::after { bottom: 3px; }
+    @keyframes bulbs { 50% { background-position: 6px 0; } }
+    .marquee h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(18px, 5.4vw, 26px); margin: 0; letter-spacing: .04em; color: #fff; text-shadow: 0 0 10px var(--amber), 0 0 24px rgba(255,182,72,.6); }
+    .marquee small { display: block; font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; color: var(--amber); margin-top: 4px; text-transform: uppercase; }
+    .stats { display: flex; justify-content: center; gap: 18px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+    .stats b { color: var(--rose); font-weight: 700; }
+
+    .tabs { display: flex; gap: 8px; background: var(--panel); border-radius: 999px; padding: 4px; margin: 12px auto 16px; max-width: 360px; }
+    .tab { flex: 1; border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 700; font-size: 14px; padding: 10px; border-radius: 999px; cursor: pointer; transition: .2s; }
+    .tab.active { background: linear-gradient(135deg, var(--rose), #ff8a5c); color: #fff; box-shadow: 0 6px 18px rgba(255,92,138,.35); }
+    .tab .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--amber); margin-left: 6px; box-shadow: 0 0 8px var(--amber); vertical-align: middle; animation: pulse 1.2s infinite; }
+    @keyframes pulse { 50% { transform: scale(1.4); opacity: .6; } }
+    .view { display: none; } .view.active { display: block; animation: rise .5s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    /* ---- слова ---- */
+    .card { background: linear-gradient(180deg, #171727, #10101c); border: 1px solid rgba(255,255,255,.06); border-radius: 22px; padding: 26px 20px 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.45); position: relative; overflow: hidden; }
+    .card::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(50% 40% at 50% 0%, rgba(167,139,250,.15), transparent 70%); }
+    .kicker { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--violet); margin-bottom: 10px; }
+    .word { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 600; font-size: clamp(34px, 10vw, 58px); line-height: 1.05; margin: 6px 0 4px; color: #fff; text-shadow: 0 0 20px rgba(167,139,250,.35); word-break: break-word; animation: wordIn .6s ease both; }
+    @keyframes wordIn { from { opacity: 0; transform: scale(.94); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+    .tr { color: var(--muted); font-size: 15px; margin-bottom: 18px; }
+    .q { font-size: 14px; color: #cfc9e2; margin: 6px 0 12px; }
+    .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .opt { font: inherit; font-weight: 600; font-size: 14px; color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 13px 8px; cursor: pointer; transition: .2s; }
+    .opt:hover { border-color: var(--violet); background: rgba(167,139,250,.12); }
+    .opt.ok { border-color: var(--teal); background: rgba(79,209,197,.18); box-shadow: 0 0 14px rgba(79,209,197,.4); }
+    .opt.bad { border-color: var(--rose); background: rgba(255,92,138,.14); opacity: .8; }
+    .opt:disabled { cursor: default; }
+    .reveal { margin-top: 16px; min-height: 20px; font-size: 15px; line-height: 1.55; color: #e8e2f5; opacity: 0; transform: translateY(6px); transition: .4s; }
+    .reveal.show { opacity: 1; transform: none; }
+    .reveal .lang { color: var(--teal); font-weight: 700; }
+    .reveal .sweet { display: block; margin-top: 8px; color: var(--rose); font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 19px; }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 13px; letter-spacing: .04em; color: #fff; background: linear-gradient(135deg, var(--rose), #ff8a5c); border: 0; border-radius: 999px; padding: 13px 24px; cursor: pointer; box-shadow: 0 8px 22px rgba(255,92,138,.35); transition: transform .15s, box-shadow .2s; }
+    .btn:hover { box-shadow: 0 10px 28px rgba(255,92,138,.5); } .btn:active { transform: scale(.96); }
+    .btn.ghost { background: transparent; border: 1px solid rgba(255,255,255,.2); box-shadow: none; color: #ddd; }
+    .btn.amber { background: linear-gradient(135deg, var(--amber), #ff8a5c); box-shadow: 0 8px 22px rgba(255,182,72,.35); color: #221; }
+    .streak { position: absolute; top: 14px; right: 16px; font-size: 12px; color: var(--amber); font-weight: 700; }
+    .unlock { margin-top: 14px; text-align: center; font-size: 13px; color: var(--muted); }
+    .unlock b { color: var(--amber); }
+
+    /* ---- кино ---- */
+    .screen { position: relative; border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06); aspect-ratio: 16 / 9; }
+    canvas#film { width: 100%; height: 100%; display: block; cursor: pointer; }
+    .tapHint { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: rgba(255,255,255,.55); letter-spacing: .1em; text-transform: uppercase; pointer-events: none; }
+    .slate { margin-top: 14px; background: var(--panel); border-radius: 16px; padding: 14px 16px; display: flex; gap: 14px; align-items: center; }
+    .slate .poster { width: 46px; height: 64px; border-radius: 6px; background: linear-gradient(160deg, var(--violet), var(--rose)); flex: none; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 6px 16px rgba(0,0,0,.4); }
+    .slate h3 { margin: 0 0 3px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; color: #fff; line-height: 1.1; }
+    .slate p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .slate p b { color: var(--amber); font-weight: 600; }
+    .music { position: fixed; top: 12px; right: 12px; z-index: 50; width: 40px; height: 40px; border-radius: 50%; background: rgba(18,18,31,.8); border: 1px solid rgba(255,255,255,.15); color: #fff; font-size: 17px; cursor: pointer; backdrop-filter: blur(6px); }
+    .music.on { border-color: var(--amber); box-shadow: 0 0 10px rgba(255,182,72,.6); }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 26px; line-height: 1.6; }
+    .foot a { color: var(--rose); text-decoration: none; }
+    .hidden { display: none !important; }
+    @media (max-width: 480px) { .screen { aspect-ratio: 4 / 3; } }
+    @media (max-width: 380px) { .opts { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <button class="music" id="musicBtn" aria-label="Звук">🔈</button>
+  <div class="wrap">
+    <header>
+      <div class="marquee"><h1>КИНОТЕАТР ДЛЯ АЯНЫ</h1><small>сеансы без расписания</small></div>
+      <div class="stats"><span>сердечки <b id="hearts">0</b></span><span>слов открыто <b id="seen">0</b></span><span>фильмов <b id="films">0</b></span></div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" id="tabWords">Слова о любви</button>
+      <button class="tab" id="tabKino">Кино<span class="dot hidden" id="kinoDot"></span></button>
+    </div>
+
+    <!-- СЛОВА -->
+    <section class="view active" id="viewWords">
+      <div class="card">
+        <div class="streak" id="streak"></div>
+        <div class="kicker" id="kicker">слово № 1</div>
+        <div class="word" id="word">…</div>
+        <div class="tr" id="tr"></div>
+        <div class="q" id="q">На каком это языке?</div>
+        <div class="opts" id="opts"></div>
+        <div class="reveal" id="reveal"></div>
+        <div class="row"><button class="btn ghost" id="skipBtn">другое слово</button><button class="btn hidden" id="nextBtn">дальше</button></div>
+      </div>
+      <div class="unlock" id="unlock">каждые <b>3 угаданных</b> открывают новый фрагмент фильма</div>
+    </section>
+
+    <!-- КИНО -->
+    <section class="view" id="viewKino">
+      <div class="screen"><canvas id="film"></canvas><div class="tapHint" id="tapHint">нажми, чтобы продолжить</div></div>
+      <div class="slate">
+        <div class="poster" id="poster">🎬</div>
+        <div><h3 id="title">Фильм, которого ещё нет</h3><p id="meta">Нажми «Снять фрагмент». Каждый раз это будет новая сцена, новое название и новые слова.</p></div>
+      </div>
+      <div class="row"><button class="btn amber" id="shootBtn">🎬 Снять фрагмент</button><button class="btn ghost" id="saveBtn">сохранить кадр</button></div>
+    </section>
+
+    <div class="foot">Всё здесь генерируется прямо сейчас, только для тебя.<br><a href="../">← к ночному городу</a></div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const pick = (a, r = Math.random) => a[Math.floor(r() * a.length)];
+  const shuffle = (a, r = Math.random) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  const mulberry = (s) => () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem('ayana.' + k)) ?? d; } catch { return d; } }, set: (k, v) => { try { localStorage.setItem('ayana.' + k, JSON.stringify(v)); } catch {} } };
+
+  /* ================= ДАННЫЕ ================= */
+  // «Я тебя люблю» на разных языках: слово, как читается, язык, значение
+  const PHRASES = [
+    ['Je t’aime', 'жё тэм', 'Французский'], ['Ti amo', 'ти амо', 'Итальянский'], ['Te quiero', 'тэ кьеро', 'Испанский'], ['Eu te amo', 'эу чи аму', 'Португальский'],
+    ['Ich liebe dich', 'ихь либэ дихь', 'Немецкий'], ['愛してる', 'айситэру', 'Японский'], ['사랑해', 'саранхэ', 'Корейский'], ['我爱你', 'во ай ни', 'Китайский'],
+    ['Seni seviyorum', 'сени севийорум', 'Турецкий'], ['Мен сені жақсы көремін', 'мен сени жаксы коремин', 'Казахский'], ['Мен сени сүйөм', 'мен сени сюйом', 'Киргизский'],
+    ['Мин сине яратам', 'мин сине яратам', 'Татарский'], ['Men seni sevaman', 'мен сени севаман', 'Узбекский'], ['Mən səni sevirəm', 'мян сяни севирям', 'Азербайджанский'],
+    ['Սիրում եմ քեզ', 'сирум эм кез', 'Армянский'], ['მიყვარხარ', 'миквархар', 'Грузинский'], ['أحبك', 'ухиббуки', 'Арабский'], ['אני אוהב אותך', 'ани охэв отах', 'Иврит'],
+    ['मैं तुमसे प्यार करता हूँ', 'мэй тумсе пьяр карта хун', 'Хинди'], ['ฉันรักคุณ', 'чан рак кхун', 'Тайский'], ['Anh yêu em', 'ань йеу эм', 'Вьетнамский'], ['Aku cinta kamu', 'аку чинта каму', 'Индонезийский'],
+    ['Σ’ αγαπώ', 'с’агапо', 'Греческий'], ['Minä rakastan sinua', 'миня ракастан синуа', 'Финский'], ['Jag älskar dig', 'яг эльскар дэй', 'Шведский'], ['Jeg elsker deg', 'яй эльскер дай', 'Норвежский'],
+    ['Ik hou van jou', 'ик хау ван яу', 'Нидерландский'], ['Kocham cię', 'кохам чен', 'Польский'], ['Miluji tě', 'милуи те', 'Чешский'], ['Я тебе кохаю', 'я тэбэ кохаю', 'Украинский'],
+    ['Волим те', 'волим те', 'Сербский'], ['Szeretlek', 'сэрэтлек', 'Венгерский'], ['Te iubesc', 'те юбеск', 'Румынский'], ['Tá grá agam ort', 'та гра агам орт', 'Ирландский'],
+    ['Rwy’n dy garu di', 'руин ды гари ди', 'Валлийский'], ['Ég elska þig', 'йег эльска сиг', 'Исландский'], ['Te amo', 'тэ амо', 'Латынь'], ['Nakupenda', 'накупенда', 'Суахили'],
+    ['Aloha wau iā ʻoe', 'алоха вау иа ое', 'Гавайский'], ['Би чамд хайртай', 'би чамд хайртай', 'Монгольский'], ['دوستت دارم', 'дустэт дарам', 'Персидский'], ['Mahal kita', 'махаль кита', 'Тагальский'],
+    ['Ma armastan sind', 'ма армастан синд', 'Эстонский'], ['Es tevi mīlu', 'эс тэви милу', 'Латышский'], ['Aš tave myliu', 'аш тавэ милю', 'Литовский'], ['Обичам те', 'обичам те', 'Болгарский'],
+    ['Të dua', 'тэ дуа', 'Албанский'], ['Maite zaitut', 'майте сайтут', 'Баскский'], ['T’estimo', 'тэстиму', 'Каталанский'], ['Мин эйигин таптыыбын', 'мин эйигин таптыыбын', 'Якутский'],
+    ['Би шамда дуратайб', 'би шамда дуратайб', 'Бурятский'], ['Мин һине яратам', 'мин хине яратам', 'Башкирский'], ['আমি তোমাকে ভালোবাসি', 'ами томаке бхалобаши', 'Бенгальский'], ['Mi amas vin', 'ми амас вин', 'Эсперанто'],
+  ].map(([w, tr, lang]) => ({ w, tr, lang, meaning: '«Я тебя люблю»', kind: 'phrase' }));
+
+  // Слова, которых нет в русском
+  const WORDS = [
+    ['saudade', 'саудáде', 'Португальский', 'нежная тоска по тому, кого любишь и кого сейчас нет рядом'],
+    ['cafuné', 'кафунэ́', 'Португальский', 'нежно перебирать пальцами волосы любимого человека'],
+    ['hiraeth', 'хи́райт', 'Валлийский', 'тоска по месту, где тебе было хорошо'],
+    ['cwtch', 'кутч', 'Валлийский', 'объятие, в котором чувствуешь себя в полной безопасности'],
+    ['forelsket', 'форэ́льскет', 'Норвежский', 'головокружительное чувство первой влюблённости'],
+    ['恋の予感', 'кой но ёкан', 'Японский', 'предчувствие при встрече, что ты обязательно влюбишься в этого человека'],
+    ['甘え', 'амаэ́', 'Японский', 'сладкое желание быть любимым и позволить о себе заботиться'],
+    ['木漏れ日', 'коморэ́би', 'Японский', 'солнечный свет, пробивающийся сквозь листья. Момент, который хочется разделить'],
+    ['mamihlapinatapai', 'мамихлапинатапай', 'Яганский', 'взгляд двоих, когда оба хотят одного и того же, но никто не решается первым'],
+    ['retrouvailles', 'ретрува́й', 'Французский', 'радость встречи после долгой разлуки'],
+    ['mon chou', 'мон шу', 'Французский', '«моя булочка» — так ласково называют любимых'],
+    ['缘分', 'юаньфэ́нь', 'Китайский', 'судьба, которая сводит двух людей'],
+    ['mångata', 'мо́нгата', 'Шведский', 'лунная дорожка на воде, по которой хочется идти вдвоём'],
+    ['fika', 'фи́ка', 'Шведский', 'перерыв на кофе, который важнее любых дел, если он вдвоём'],
+    ['iktsuarpok', 'иктсуарпо́к', 'Инуитский', 'нетерпение, когда ждёшь кого-то и всё время выглядываешь в окно'],
+    ['kilig', 'кили́г', 'Тагальский', 'бабочки в животе, когда происходит что-то романтичное'],
+    ['gigil', 'гиги́л', 'Тагальский', 'желание сжать кого-то в объятиях, потому что он невыносимо милый'],
+    ['dor', 'дор', 'Румынский', 'тоска по человеку, которого любишь'],
+    ['tiam', 'тиа́м', 'Персидский', 'блеск в глазах при первой встрече'],
+    ['naz', 'наз', 'Урду', 'спокойная уверенность, что тебя любят просто так'],
+    ['jaanu', 'джа́ну', 'Хинди', '«жизнь моя» — ласковое обращение к любимому человеку'],
+    ['hygge', 'хю́гге', 'Датский', 'уют, плед, свечи и кто-то рядом'],
+    ['cariño', 'кари́ньо', 'Испанский', 'нежность; так называют тех, кого любят'],
+    ['querencia', 'керэ́нсия', 'Испанский', 'место, где чувствуешь себя собой и в безопасности. Иногда это человек'],
+    ['mi media naranja', 'ми мэ́дья нара́нха', 'Испанский', '«моя половинка апельсина» — вторая половинка'],
+    ['oodal', 'у́даль', 'Тамильский', 'притворная обида между влюблёнными, которая всегда заканчивается примирением'],
+    ['Geborgenheit', 'гебо́ргенхайт', 'Немецкий', 'чувство полной защищённости рядом с кем-то'],
+    ['정', 'чон', 'Корейский', 'глубокая привязанность, которая растёт со временем'],
+    ['merak', 'ме́рак', 'Сербский', 'удовольствие от простых вещей, разделённое с кем-то'],
+    ['mo chuisle', 'мо ху́шле', 'Ирландский', '«мой пульс» — так называют самого дорогого человека'],
+    ['canım', 'джаны́м', 'Турецкий', '«душа моя» — ласковое обращение'],
+    ['habibti', 'хаби́бти', 'Арабский', '«любимая»'],
+    ['жаным', 'жаны́м', 'Казахский', '«душа моя» — так зовут самых близких'],
+    ['ubuntu', 'убу́нту', 'Зулу', '«я есть, потому что есть ты»'],
+    ['koselig', 'ку́шели', 'Норвежский', 'тепло и уют, когда рядом правильный человек'],
+    ['sobremesa', 'собреме́са', 'Испанский', 'время после еды, когда никто не уходит, потому что разговор слишком хорош'],
+    ['yakamoz', 'якамо́з', 'Турецкий', 'отражение лунного света на воде'],
+    ['viraha', 'вира́ха', 'Санскрит', 'понять, что любишь, только оказавшись в разлуке'],
+  ].map(([w, tr, lang, meaning]) => ({ w, tr, lang, meaning, kind: 'word' }));
+
+  const ALL = PHRASES.concat(WORDS);
+  const LANGS = [...new Set(ALL.map((x) => x.lang))];
+  const SWEET = [
+    'Если бы я знал {lang}, первым делом сказал бы это тебе.',
+    'Я выучил это слово только ради того, чтобы однажды сказать его тебе, Аяна.',
+    'В любом языке это звучит одинаково, если смотреть на тебя.',
+    'Запомни это слово. Оно про нас.',
+    'На этом языке я бы говорил с тобой до утра.',
+    'Переводится просто: Аяна.',
+    'Я подозреваю, это слово придумали, когда увидели тебя.',
+    'Ещё один язык, на котором я умею сказать главное.',
+  ];
+
+  /* ================= СОСТОЯНИЕ ================= */
+  const S = { hearts: store.get('hearts', 0), seen: store.get('seen', 0), films: store.get('films', 0), streak: 0, correctSinceFilm: 0, pending: store.get('pending', 0) };
+  const sync = () => { $('hearts').textContent = S.hearts; $('seen').textContent = S.seen; $('films').textContent = S.films; store.set('hearts', S.hearts); store.set('seen', S.seen); store.set('films', S.films); store.set('pending', S.pending); $('kinoDot').classList.toggle('hidden', S.pending <= 0); };
+
+  /* ================= АУДИО ================= */
+  let ac, master, soundOn = false, melodyTimer, humGain;
+  const ensureAudio = () => {
+    if (ac) return; ac = new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+    const len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0); let last = 0;
+    for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; }
+    const src = ac.createBufferSource(); src.buffer = buf; src.loop = true; const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500;
+    humGain = ac.createGain(); humGain.gain.value = 0.05; src.connect(lp); lp.connect(humGain); humGain.connect(master); src.start();
+    const delay = ac.createDelay(2); delay.delayTime.value = 0.5; const fb = ac.createGain(); fb.gain.value = 0.4; delay.connect(fb); fb.connect(delay); delay.connect(master); ac._delay = delay;
+  };
+  const note = (f, t, vol = 0.06, dur = 2.4) => { const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f; const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(master); g.connect(ac._delay); o.start(t); o.stop(t + dur + 0.1); };
+  const SCALE = [261.63, 293.66, 329.63, 392, 440, 523.25, 587.33, 659.25];
+  const runMelody = () => { if (!soundOn) return; const t = ac.currentTime + 0.05; note(pick(SCALE), t); if (Math.random() < 0.4) note(pick(SCALE) / 2, t + 0.25, 0.04, 3); melodyTimer = setTimeout(runMelody, 1200 + Math.random() * 1800); };
+  const setSound = (on) => { ensureAudio(); if (ac.state === 'suspended') ac.resume(); soundOn = on; $('musicBtn').textContent = on ? '🎧' : '🔈'; $('musicBtn').classList.toggle('on', on); master.gain.cancelScheduledValues(ac.currentTime); master.gain.linearRampToValueAtTime(on ? 1 : 0, ac.currentTime + 0.5); clearTimeout(melodyTimer); if (on) runMelody(); };
+  const chime = (good) => { if (!soundOn) return; const t = ac.currentTime; (good ? [523.25, 659.25, 783.99] : [392, 369.99]).forEach((f, i) => note(f, t + i * 0.08, 0.07, 1.2)); };
+  $('musicBtn').addEventListener('click', () => setSound(!soundOn));
+  let audioArmed = false; const armAudio = () => { if (!audioArmed) { audioArmed = true; setSound(true); } };
+
+  /* ================= СЛОВА ================= */
+  let deck = shuffle(ALL), idx = 0, cur = null, answered = false, wordNo = store.get('wordNo', 0);
+  const nextWord = () => {
+    if (idx >= deck.length) { deck = shuffle(ALL); idx = 0; }
+    cur = deck[idx++]; answered = false; wordNo++; store.set('wordNo', wordNo);
+    $('kicker').textContent = (cur.kind === 'phrase' ? 'как сказать «я тебя люблю» · № ' : 'слово, которого нет в русском · № ') + wordNo;
+    const w = $('word'); w.textContent = cur.w; w.style.animation = 'none'; void w.offsetWidth; w.style.animation = '';
+    $('tr').textContent = cur.tr;
+    $('reveal').classList.remove('show'); $('reveal').innerHTML = '';
+    $('nextBtn').classList.add('hidden'); $('skipBtn').classList.remove('hidden');
+    const opts = shuffle([cur.lang, ...shuffle(LANGS.filter((l) => l !== cur.lang)).slice(0, 3)]);
+    const box = $('opts'); box.innerHTML = '';
+    opts.forEach((l) => { const b = document.createElement('button'); b.className = 'opt'; b.textContent = l; b.addEventListener('click', () => answer(b, l)); box.appendChild(b); });
+    $('streak').textContent = S.streak >= 2 ? `серия ${S.streak} 🔥` : '';
+  };
+  const answer = (btn, lang) => {
+    if (answered) return; answered = true; armAudio();
+    const ok = lang === cur.lang;
+    [...$('opts').children].forEach((b) => { b.disabled = true; if (b.textContent === cur.lang) b.classList.add('ok'); else if (b === btn) b.classList.add('bad'); });
+    S.seen++;
+    if (ok) { S.hearts++; S.streak++; S.correctSinceFilm++; } else { S.streak = 0; }
+    chime(ok);
+    const sweet = pick(SWEET).replace('{lang}', cur.lang.toLowerCase());
+    $('reveal').innerHTML = `${ok ? '💗 Да!' : 'Почти.'} Это <span class="lang">${cur.lang}</span>: ${cur.meaning}.<span class="sweet">${sweet}</span>`;
+    $('reveal').classList.add('show');
+    $('nextBtn').classList.remove('hidden'); $('skipBtn').classList.add('hidden');
+    if (S.correctSinceFilm >= 3) { S.correctSinceFilm = 0; S.pending++; $('unlock').innerHTML = '🎬 <b>открылся новый фрагмент фильма</b> — загляни во вкладку «Кино»'; }
+    else $('unlock').innerHTML = `до нового фрагмента фильма: <b>${3 - S.correctSinceFilm}</b> ${['угаданных', 'угаданное', 'угаданных'][(3 - S.correctSinceFilm) % 3]}`;
+    sync();
+  };
+  $('nextBtn').addEventListener('click', nextWord);
+  $('skipBtn').addEventListener('click', () => { S.streak = 0; nextWord(); });
+
+  /* ================= ВКЛАДКИ ================= */
+  const showTab = (k) => { $('tabWords').classList.toggle('active', k === 'words'); $('tabKino').classList.toggle('active', k === 'kino'); $('viewWords').classList.toggle('active', k === 'words'); $('viewKino').classList.toggle('active', k === 'kino'); if (k === 'kino') { resizeFilm(); if (S.pending > 0) { S.pending--; sync(); shoot(); } else if (!film.playing) idle(); } };
+  $('tabWords').addEventListener('click', () => showTab('words'));
+  $('tabKino').addEventListener('click', () => showTab('kino'));
+
+  /* ================= КИНО ================= */
+  const canvas = $('film'), ctx = canvas.getContext('2d');
+  let W = 0, H = 0, DPR = 1;
+  const resizeFilm = () => { const r = canvas.getBoundingClientRect(); if (!r.width) return; DPR = Math.min(2, devicePixelRatio || 1); W = r.width; H = r.height; canvas.width = W * DPR; canvas.height = H * DPR; };
+  window.addEventListener('resize', resizeFilm);
+
+  const TITLES = {
+    a: ['Тихий', 'Последний', 'Бумажный', 'Ночной', 'Медленный', 'Негромкий', 'Первый', 'Долгий', 'Случайный', 'Тёплый'],
+    n: ['дождь', 'поезд', 'снег', 'фонарь', 'город', 'разговор', 'вечер', 'звонок', 'трамвай', 'свет'],
+    tail: ['для Аяны', 'над городом', 'до рассвета', 'в декабре', 'на двоих', 'у моря', 'без слов', 'в 23:40', 'после титров', 'и ты'],
+    whole: ['Семь минут до рассвета', 'Город, где ты', 'Сакура в декабре', 'Пока не растаял снег', 'Все фонари для Аяны', 'Станция «Аяна»', 'Мы ещё не знакомы', 'Между сеансами', 'Не уходи до титров', 'Вторая половина ночи'],
+  };
+  const DIRECTORS = ['Сердце', 'Бессонница', 'Тот самый вечер', 'Осень', 'Дождь', 'Я'];
+  const GENRES = ['романтическая драма', 'тихая мелодрама', 'аниме-фильм', 'короткий метр', 'кино о первом «люблю»', 'ночная история'];
+
+  const SCENES = {
+    rain: { slug: 'НАТ. МОКРАЯ УЛИЦА — НОЧЬ', weather: 'Дождь почти кончился' },
+    snow: { slug: 'НАТ. ФОНАРЬ У ОСТАНОВКИ — ЗИМНЯЯ НОЧЬ', weather: 'Снег идёт тихо-тихо' },
+    sunset: { slug: 'НАТ. ПИРС — ЗАКАТ', weather: 'Солнце почти село' },
+    train: { slug: 'ИНТ. ПОСЛЕДНИЙ ПОЕЗД — НОЧЬ', weather: 'За окном огни' },
+    roof: { slug: 'НАТ. КРЫША — ЗВЁЗДНАЯ НОЧЬ', weather: 'Небо ясное' },
+    sakura: { slug: 'НАТ. АЛЛЕЯ — ВЕСЕННИЙ ВЕЧЕР', weather: 'Лепестки падают' },
+    festival: { slug: 'НАТ. ЛЕТНИЙ ФЕСТИВАЛЬ — НОЧЬ', weather: 'Начинается салют' },
+    cafe: { slug: 'ИНТ. КАФЕ У ОКНА — ПОЗДНИЙ ВЕЧЕР', weather: 'На стекле капли' },
+  };
+  const OPEN = [
+    'Аяна… можно я скажу кое-что? Только не смейся.',
+    'Я репетировал эту фразу всю дорогу. И всё равно забыл.',
+    'Знаешь, почему я сегодня такой тихий?',
+    'Подожди. Не уходи пока. Мне нужно десять секунд смелости.',
+    'Я написал тебе письмо. А потом порвал. Лучше скажу так.',
+    'Аяна, ты заметила, что я весь вечер смотрю не на экран, а на тебя?',
+    'У меня есть одна фраза. Она короткая, но я её очень боюсь.',
+    'Слушай… только пообещай, что не исчезнешь после этого.',
+  ];
+  const SHY = [
+    'Ладно. Я… э-э… Сейчас. Секунду.',
+    'У меня руки дрожат, видишь? Это из-за тебя.',
+    'Если я покраснел, это из-за фонаря. Нет. Не из-за фонаря.',
+    'Можно я буду смотреть вон туда, а не на тебя? Так проще.',
+    'Я три раза начинал. Четвёртый, обещаю, получится.',
+    'Почему это так сложно. Я же просто… ладно.',
+    'Не смотри так. А то я забуду даже своё имя.',
+    'Сейчас. Вдох. Выдох. Окей.',
+  ];
+  const LOVE = [
+    'Я люблю тебя. Вот. Сказал. Земля не разверзлась.',
+    'Ты мне нравишься так сильно, что это уже не «нравишься». Это «люблю».',
+    'Я люблю тебя, Аяна. Давно. Просто ждал подходящей сцены.',
+    'Когда ты рядом, город становится тише. Я люблю тебя.',
+    'Я не умею красиво. Поэтому просто: я тебя люблю.',
+    'Аяна. Я тебя люблю. Можешь ничего не отвечать, я просто хотел, чтобы ты знала.',
+    'Ты — лучшее, что случилось со мной за всё это кино. Люблю тебя.',
+    'В {lang} есть слово «{word}». {meaning}. Это про тебя. Я люблю тебя.',
+    'В {lang} говорят «{word}». Я говорю: Аяна, я люблю тебя.',
+  ];
+  const CLOSE = [
+    'Можно я возьму тебя за руку? Хотя бы до следующей сцены.',
+    'Ты улыбаешься. Значит, я всё сделал правильно.',
+    'Теперь ты. Или нет. Я подожду. Я умею.',
+    '{weather}. Пойдём, я провожу.',
+    'Всё. Я сказал. Можно теперь дышать.',
+    'Если это сон, не буди меня до титров.',
+    'Пойдём домой. Нет, подожди. Ещё минуту вот так постоим.',
+  ];
+
+  const film = { playing: false, R: null, t: 0, phase: 'idle', lines: [], li: 0, lt: 0, scene: null, title: '', raf: 0, data: null, seed: 0 };
+  const buildFilm = (seed) => {
+    const R = mulberry(seed);
+    const kind = pick(Object.keys(SCENES), R);
+    const useWhole = R() < 0.4;
+    const title = useWhole ? pick(TITLES.whole, R) : `${pick(TITLES.a, R)} ${pick(TITLES.n, R)} ${pick(TITLES.tail, R)}`;
+    const wordItem = pick(WORDS, R);
+    const SPECIAL = { 'Санскрит': 'санскрите', 'Урду': 'языке урду', 'Хинди': 'языке хинди', 'Зулу': 'языке зулу', 'Иврит': 'иврите', 'Латынь': 'латыни', 'Эсперанто': 'эсперанто' };
+    const langLoc = SPECIAL[wordItem.lang] || wordItem.lang.toLowerCase().replace(/ий$/, 'ом');
+    const fill = (s) => s.replace('{lang}', langLoc).replace('{word}', wordItem.w).replace('{meaning}', wordItem.meaning[0].toUpperCase() + wordItem.meaning.slice(1)).replace('{weather}', SCENES[kind].weather);
+    const lines = [pick(OPEN, R), pick(SHY, R), fill(pick(LOVE, R)), fill(pick(CLOSE, R))];
+    const year = 2024 + Math.floor(R() * 4);
+    return { kind, title, lines, year, director: pick(DIRECTORS, R), genre: pick(GENRES, R), no: S.films + 1, seed, R: mulberry(seed * 7 + 1) };
+  };
+
+  /* ---- рисование сцен ---- */
+  const setupScene = (d) => {
+    const R = d.R; const s = { kind: d.kind, bokeh: [], drops: [], flakes: [], petals: [], stars: [], lights: [], fw: [], leakX: R(), leakY: R(), zoomDir: R() < 0.5 ? 1 : -1 };
+    for (let i = 0; i < 28; i++) s.bokeh.push({ x: R(), y: R() * 0.75, r: 6 + R() * 26, c: pick(['#ffb648', '#ff5c8a', '#4fd1c5', '#a78bfa', '#ffffff', '#ff8a5c'], R), a: 0.15 + R() * 0.35, ph: R() * 6 });
+    for (let i = 0; i < 140; i++) s.drops.push({ x: R(), y: R(), v: 0.6 + R() * 0.6, l: 0.02 + R() * 0.03 });
+    for (let i = 0; i < 90; i++) s.flakes.push({ x: R(), y: R(), r: 1 + R() * 2.5, v: 0.05 + R() * 0.1, ph: R() * 6 });
+    for (let i = 0; i < 40; i++) s.petals.push({ x: R(), y: R(), r: 3 + R() * 4, v: 0.06 + R() * 0.08, ph: R() * 6, rot: R() * 6 });
+    for (let i = 0; i < 120; i++) s.stars.push({ x: R(), y: R() * 0.6, r: 0.5 + R() * 1.4, ph: R() * 6 });
+    for (let i = 0; i < 30; i++) s.lights.push({ x: R(), y: 0.25 + R() * 0.35, w: 0.02 + R() * 0.08, c: pick(['#ffb648', '#fff', '#4fd1c5', '#ff5c8a'], R), v: 0.2 + R() * 0.3 });
+    s.glass = []; for (let i = 0; i < 60; i++) s.glass.push({ x: R(), y: R(), r: 2 + R() * 5 });
+    s.city = []; let x = 0; while (x < 1.2) { const w = 0.03 + R() * 0.07; s.city.push({ x, w, h: 0.08 + R() * 0.25 }); x += w + 0.005; }
+    return s;
+  };
+  const figure = (c, x, base, h, o) => {
+    // силуэт: o = { hair:'long'|'short', shy:0..1, flip:1|-1, col }
+    c.save(); c.translate(x, base); c.scale(o.flip, 1); c.fillStyle = o.col; c.strokeStyle = o.col; c.lineCap = 'round';
+    const hd = h * 0.11, tilt = o.shy * 0.18;
+    // тело
+    c.beginPath(); c.moveTo(-h * 0.16, 0); c.lineTo(-h * 0.14, -h * 0.55); c.quadraticCurveTo(-h * 0.14, -h * 0.74, 0, -h * 0.76); c.quadraticCurveTo(h * 0.14, -h * 0.74, h * 0.14, -h * 0.55); c.lineTo(h * 0.16, 0); c.closePath(); c.fill();
+    // голова
+    c.save(); c.translate(0, -h * 0.78); c.rotate(tilt); c.beginPath(); c.arc(0, -hd, hd, 0, Math.PI * 2); c.fill();
+    if (o.hair === 'long') { c.beginPath(); c.moveTo(-hd * 1.05, -hd * 0.6); c.quadraticCurveTo(-hd * 1.5, hd * 1.2, -hd * 0.9, hd * 2.2); c.lineTo(hd * 0.9, hd * 2.2); c.quadraticCurveTo(hd * 1.5, hd * 1.2, hd * 1.05, -hd * 0.6); c.quadraticCurveTo(0, -hd * 2.3, -hd * 1.05, -hd * 0.6); c.fill(); }
+    else { c.beginPath(); c.moveTo(-hd * 1.05, -hd * 0.8); c.quadraticCurveTo(-hd * 0.4, -hd * 2.4, hd * 0.9, -hd * 1.5); c.quadraticCurveTo(hd * 1.1, -hd * 1, hd * 1.05, -hd * 0.6); c.quadraticCurveTo(0, -hd * 1.6, -hd * 1.05, -hd * 0.8); c.fill(); }
+    c.restore();
+    // рука: у него застенчиво к затылку
+    c.lineWidth = h * 0.06;
+    if (o.shy > 0.01) { const k = o.shy; c.beginPath(); c.moveTo(h * 0.12, -h * 0.62); c.quadraticCurveTo(h * 0.3, -h * (0.62 + 0.2 * k), h * 0.1, -h * (0.7 + 0.3 * k)); c.stroke(); }
+    else { c.beginPath(); c.moveTo(h * 0.12, -h * 0.62); c.lineTo(h * 0.16, -h * 0.3); c.stroke(); }
+    c.beginPath(); c.moveTo(-h * 0.12, -h * 0.62); c.lineTo(-h * 0.15, -h * 0.3); c.stroke();
+    c.restore();
+  };
+  const drawFigures = (c, s, t, col) => {
+    const base = H * 0.86, h = H * 0.5;
+    const shy = film.phase === 'lines' ? (film.li === 1 ? 1 : film.li === 0 ? 0.5 : 0.15) : 0.3;
+    const bob = Math.sin(t * 1.3) * 2;
+    figure(c, W * 0.40, base + bob, h, { hair: 'short', shy: 0.5 + 0.5 * Math.sin(t * 0.8) * shy, flip: 1, col });
+    figure(c, W * 0.60, base - bob, h * 0.95, { hair: 'long', shy: 0, flip: -1, col });
+  };
+  const bokeh = (c, s, t, scale = 1) => { for (const b of s.bokeh) { const a = b.a * (0.7 + 0.3 * Math.sin(t * 0.8 + b.ph)); c.globalAlpha = a; c.fillStyle = b.c; c.beginPath(); c.arc(b.x * W, b.y * H, b.r * scale * (W / 420), 0, Math.PI * 2); c.fill(); } c.globalAlpha = 1; };
+  const skyline = (c, s, base, col) => { c.fillStyle = col; for (const b of s.city) { c.fillRect(b.x * W, base - b.h * H, b.w * W, b.h * H + 4); } };
+  const grad = (c, stops) => { const g = c.createLinearGradient(0, 0, 0, H); stops.forEach(([p, col]) => g.addColorStop(p, col)); c.fillStyle = g; c.fillRect(0, 0, W, H); };
+
+  const SCENE_DRAW = {
+    rain: (c, s, t) => {
+      grad(c, [[0, '#070a1a'], [1, '#1a1030']]); bokeh(c, s, t, 1.4); skyline(c, s, H * 0.72, '#0a0a18');
+      c.fillStyle = '#0b0c1c'; c.fillRect(0, H * 0.86, W, H);
+      c.save(); c.globalAlpha = 0.25; c.translate(0, H * 0.86 * 1.15); c.scale(1, -0.15); bokeh(c, s, t, 1.2); c.restore();
+      drawFigures(c, s, t, '#05060f');
+      c.strokeStyle = 'rgba(190,210,255,0.35)'; c.lineWidth = 1; for (const d of s.drops) { const y = ((d.y + t * d.v * 0.5) % 1); const x = ((d.x - t * 0.03) % 1 + 1) % 1; c.beginPath(); c.moveTo(x * W, y * H); c.lineTo(x * W - 3, y * H + d.l * H); c.stroke(); }
+    },
+    snow: (c, s, t) => {
+      grad(c, [[0, '#050713'], [1, '#141a33']]); skyline(c, s, H * 0.76, '#090c1c');
+      const lx = W * 0.5, ly = H * 0.18; const g = c.createRadialGradient(lx, ly, 0, lx, ly, H * 0.9); g.addColorStop(0, 'rgba(255,214,150,0.45)'); g.addColorStop(1, 'rgba(255,214,150,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#eef2ff'; c.fillRect(0, H * 0.86, W, H); c.strokeStyle = '#1a1c2e'; c.lineWidth = 4; c.beginPath(); c.moveTo(lx, ly); c.lineTo(lx, H * 0.86); c.stroke(); c.fillStyle = '#ffe7b0'; c.beginPath(); c.arc(lx, ly, 6, 0, Math.PI * 2); c.fill();
+      drawFigures(c, s, t, '#0c0e1d');
+      c.fillStyle = 'rgba(255,255,255,0.9)'; for (const f of s.flakes) { const y = ((f.y + t * f.v) % 1), x = ((f.x + Math.sin(t + f.ph) * 0.02) % 1 + 1) % 1; c.globalAlpha = 0.5 + 0.5 * Math.sin(t + f.ph); c.beginPath(); c.arc(x * W, y * H, f.r, 0, Math.PI * 2); c.fill(); } c.globalAlpha = 1;
+    },
+    sunset: (c, s, t) => {
+      grad(c, [[0, '#2b1546'], [0.5, '#c2416b'], [0.72, '#ff9a5c'], [1, '#ffd36b']]);
+      c.fillStyle = '#ffe9a8'; c.beginPath(); c.arc(W * 0.5, H * 0.66, H * 0.12, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#3a1a4a'; c.fillRect(0, H * 0.68, W, H);
+      for (let i = 0; i < 14; i++) { c.strokeStyle = `rgba(255,220,150,${0.15 + 0.1 * Math.sin(t * 2 + i)})`; c.lineWidth = 2; c.beginPath(); c.moveTo(W * 0.3 + Math.sin(t + i) * 6, H * (0.70 + i * 0.02)); c.lineTo(W * 0.7 + Math.cos(t + i) * 6, H * (0.70 + i * 0.02)); c.stroke(); }
+      c.fillStyle = '#1a0b24'; c.fillRect(W * 0.1, H * 0.84, W * 0.8, H * 0.05); for (let i = 0; i < 6; i++) c.fillRect(W * (0.15 + i * 0.14), H * 0.86, 6, H * 0.14);
+      drawFigures(c, s, t, '#1a0b24');
+    },
+    train: (c, s, t) => {
+      grad(c, [[0, '#06070f'], [1, '#0d1020']]);
+      for (const l of s.lights) { const x = ((l.x - t * l.v) % 1 + 1) % 1; c.fillStyle = l.c; c.globalAlpha = 0.6; c.shadowBlur = 14; c.shadowColor = l.c; c.fillRect(x * W, l.y * H, l.w * W, 3); } c.shadowBlur = 0; c.globalAlpha = 1;
+      c.fillStyle = '#121426'; c.fillRect(0, 0, W, H * 0.12); c.fillRect(0, H * 0.62, W, H); c.fillRect(0, 0, W * 0.06, H); c.fillRect(W * 0.94, 0, W, H);
+      c.fillStyle = '#1b1e36'; c.fillRect(0, H * 0.64, W, H * 0.03);
+      c.save(); c.globalAlpha = 0.08; c.fillStyle = '#fff'; c.fillRect(W * 0.06, H * 0.12, W * 0.88, H * 0.5); c.restore();
+      drawFigures(c, s, t, '#07080f');
+    },
+    roof: (c, s, t) => {
+      grad(c, [[0, '#03040c'], [1, '#161233']]);
+      c.fillStyle = '#fff'; for (const st of s.stars) { c.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(t * 1.5 + st.ph)); c.beginPath(); c.arc(st.x * W, st.y * H, st.r, 0, Math.PI * 2); c.fill(); } c.globalAlpha = 1;
+      c.fillStyle = '#fff3dc'; c.beginPath(); c.arc(W * 0.8, H * 0.18, H * 0.06, 0, Math.PI * 2); c.fill();
+      skyline(c, s, H * 0.9, '#0a0b1c'); bokeh(c, s, t, 0.4);
+      c.fillStyle = '#0d0e1f'; c.fillRect(0, H * 0.86, W, H); c.fillStyle = '#1a1b33'; c.fillRect(0, H * 0.84, W, H * 0.02);
+      drawFigures(c, s, t, '#05050f');
+    },
+    sakura: (c, s, t) => {
+      grad(c, [[0, '#f7c5d8'], [0.6, '#f1a7c6'], [1, '#8a4a7a']]);
+      c.strokeStyle = '#4a2538'; c.lineWidth = 10; c.lineCap = 'round'; c.beginPath(); c.moveTo(-10, H * 0.1); c.quadraticCurveTo(W * 0.3, H * 0.05, W * 0.5, H * 0.25); c.stroke(); c.lineWidth = 6; c.beginPath(); c.moveTo(W * 0.3, H * 0.09); c.quadraticCurveTo(W * 0.35, H * 0.3, W * 0.28, H * 0.4); c.stroke();
+      c.fillStyle = 'rgba(255,170,200,0.9)'; for (let i = 0; i < 40; i++) { const px = (i * 37 % 100) / 100, py = (i * 53 % 100) / 100; c.beginPath(); c.arc(W * (0.02 + px * 0.5), H * (0.02 + py * 0.28), 7 + (i % 4) * 3, 0, Math.PI * 2); c.fill(); }
+      c.fillStyle = '#5c2f52'; c.fillRect(0, H * 0.86, W, H);
+      drawFigures(c, s, t, '#2a1230');
+      for (const p of s.petals) { const y = ((p.y + t * p.v) % 1), x = ((p.x + Math.sin(t * 0.7 + p.ph) * 0.05) % 1 + 1) % 1; c.save(); c.translate(x * W, y * H); c.rotate(p.rot + t); c.fillStyle = 'rgba(255,200,220,0.95)'; c.beginPath(); c.ellipse(0, 0, p.r, p.r * 0.6, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
+    },
+    festival: (c, s, t) => {
+      grad(c, [[0, '#070512'], [1, '#2a1030']]);
+      const n = 3; for (let k = 0; k < n; k++) { const ph = (t * 0.5 + k / n) % 1; const cx = W * (0.2 + 0.3 * k), cy = H * 0.28, r = ph * H * 0.3; const col = ['#ff5c8a', '#ffb648', '#4fd1c5'][k]; c.globalAlpha = 1 - ph; for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2; c.fillStyle = col; c.beginPath(); c.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r + ph * ph * 40, 2.5, 0, Math.PI * 2); c.fill(); } } c.globalAlpha = 1;
+      for (let i = 0; i < 9; i++) { const x = W * (0.05 + i * 0.11), y = H * (0.5 + Math.sin(t + i) * 0.01); c.fillStyle = '#ff8a5c'; c.shadowBlur = 16; c.shadowColor = '#ffb648'; c.beginPath(); c.ellipse(x, y, 7, 10, 0, 0, Math.PI * 2); c.fill(); } c.shadowBlur = 0;
+      c.strokeStyle = '#3a2440'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, H * 0.47); c.lineTo(W, H * 0.47); c.stroke();
+      c.fillStyle = '#120a1a'; c.fillRect(0, H * 0.86, W, H);
+      drawFigures(c, s, t, '#0a0510');
+    },
+    cafe: (c, s, t) => {
+      grad(c, [[0, '#1a0f14'], [1, '#2a1a1c']]); bokeh(c, s, t, 2.2);
+      c.fillStyle = 'rgba(255,255,255,0.05)'; c.fillRect(0, 0, W, H);
+      c.fillStyle = 'rgba(180,200,230,0.35)'; for (const g of s.glass) { c.beginPath(); c.arc(g.x * W, g.y * H, g.r, 0, Math.PI * 2); c.fill(); }
+      c.fillStyle = '#2b1a18'; c.fillRect(0, H * 0.86, W, H); c.fillStyle = '#3b2622'; c.fillRect(W * 0.3, H * 0.74, W * 0.4, H * 0.03);
+      c.fillStyle = '#ffd7a0'; c.shadowBlur = 18; c.shadowColor = '#ffb648'; c.beginPath(); c.arc(W * 0.5, H * 0.72, 4, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0;
+      drawFigures(c, s, t, '#120909');
+    },
+  };
+
+  /* ---- плёнка: зерно, виньетка, мерцание, рамка ---- */
+  const grainCv = document.createElement('canvas'); grainCv.width = 160; grainCv.height = 90; const gctx = grainCv.getContext('2d');
+  const grain = () => { const img = gctx.createImageData(160, 90); const d = img.data; for (let i = 0; i < d.length; i += 4) { const v = 128 + (Math.random() * 110 - 55) | 0; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; } gctx.putImageData(img, 0, 0); };
+  const postFx = (c, s, t) => {
+    grain(); c.save(); c.globalAlpha = 0.10; c.globalCompositeOperation = 'overlay'; c.imageSmoothingEnabled = false; c.drawImage(grainCv, 0, 0, W, H); c.restore();
+    const lx = (s.leakX + Math.sin(t * 0.2) * 0.1) * W, ly = s.leakY * H; const lg = c.createRadialGradient(lx, ly, 0, lx, ly, W * 0.6); lg.addColorStop(0, 'rgba(255,140,60,0.16)'); lg.addColorStop(1, 'rgba(255,140,60,0)'); c.fillStyle = lg; c.fillRect(0, 0, W, H);
+    const vg = c.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.95); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.65)'); c.fillStyle = vg; c.fillRect(0, 0, W, H);
+    c.fillStyle = `rgba(0,0,0,${Math.random() * 0.05})`; c.fillRect(0, 0, W, H);
+    if (Math.random() < 0.01) { c.fillStyle = 'rgba(255,255,255,0.4)'; c.fillRect(Math.random() * W, 0, 1, H); }
+    c.fillStyle = '#000'; c.fillRect(0, 0, W, H * 0.08); c.fillRect(0, H * 0.92, W, H * 0.08);
+  };
+  const wrapText = (c, text, maxW) => { const words = text.split(' '); const lines = []; let line = ''; for (const w of words) { const test = line ? line + ' ' + w : w; if (c.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test; } if (line) lines.push(line); return lines; };
+  const subtitle = (c, text) => {
+    const fs = Math.max(13, Math.round(W / 28)); c.font = `500 ${fs}px Manrope, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'bottom';
+    const lines = wrapText(c, text, W * 0.84); let y = H * 0.90;
+    for (let i = lines.length - 1; i >= 0; i--) { c.fillStyle = 'rgba(0,0,0,0.55)'; const tw = c.measureText(lines[i]).width; c.fillRect(W / 2 - tw / 2 - 8, y - fs - 4, tw + 16, fs + 8); c.fillStyle = '#fff4d6'; c.shadowBlur = 6; c.shadowColor = '#000'; c.fillText(lines[i], W / 2, y); c.shadowBlur = 0; y -= fs + 8; }
+  };
+  const centerText = (c, text, y, size, opts = {}) => { c.font = `${opts.weight || 500} ${size}px ${opts.font || 'Cormorant Garamond, serif'}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = opts.col || '#fff'; c.globalAlpha = opts.a ?? 1; if (opts.italic) c.font = 'italic ' + c.font; c.fillText(text, W / 2, y); c.globalAlpha = 1; };
+
+  /* ---- проигрывание ---- */
+  const LINE_T = 4.2;
+  const render = (now) => {
+    if (!film.playing) return;
+    const dt = Math.min(0.05, (now - film.last) / 1000); film.last = now; film.t += dt; film.lt += dt;
+    const c = ctx; c.save(); c.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const d = film.data, s = film.scene;
+    if (film.phase === 'title') {
+      c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
+      const a = Math.min(1, film.lt / 0.8) * (film.lt > 3.2 ? Math.max(0, 1 - (film.lt - 3.2) / 0.6) : 1);
+      centerText(c, `фрагмент № ${d.no} · ${d.year}`, H * 0.3, Math.round(W / 34), { a, font: 'Unbounded, sans-serif', weight: 400, col: '#ffb648' });
+      centerText(c, d.title, H * 0.48, Math.round(W / 11), { a, italic: true, weight: 600 });
+      centerText(c, `${d.genre} · режиссёр: ${d.director}`, H * 0.66, Math.round(W / 32), { a, font: 'Manrope, sans-serif', col: '#9d94c7' });
+      if (film.lt > 3.9) { film.phase = 'slug'; film.lt = 0; }
+    } else {
+      // камера: медленный наезд
+      const z = 1 + 0.06 * (0.5 + 0.5 * Math.sin(film.t * 0.08 * s.zoomDir)); c.translate(W / 2, H / 2); c.scale(z, z); c.translate(-W / 2 + Math.sin(film.t * 0.1) * 6, -H / 2);
+      SCENE_DRAW[d.kind](c, s, film.t);
+      c.setTransform(DPR, 0, 0, DPR, 0, 0);
+      if (film.phase === 'slug') {
+        const a = Math.min(1, film.lt / 0.5) * (film.lt > 2.4 ? Math.max(0, 1 - (film.lt - 2.4) / 0.5) : 1);
+        c.font = `600 ${Math.round(W / 30)}px Unbounded, sans-serif`; c.textAlign = 'left'; c.textBaseline = 'top'; c.fillStyle = `rgba(255,255,255,${a})`; c.fillText(SCENES[d.kind].slug, W * 0.06, H * 0.12);
+        if (film.lt > 2.9) { film.phase = 'lines'; film.lt = 0; film.li = 0; }
+      } else if (film.phase === 'lines') {
+        const line = d.lines[film.li]; const shown = Math.min(line.length, Math.floor(film.lt * 28));
+        subtitle(c, line.slice(0, shown) + (shown < line.length ? '▍' : ''));
+        if (film.lt > LINE_T + line.length / 28) { film.li++; film.lt = 0; if (film.li >= d.lines.length) { film.phase = 'end'; film.lt = 0; } }
+      } else if (film.phase === 'end') {
+        const a = Math.min(1, film.lt / 1);
+        c.fillStyle = `rgba(0,0,0,${a * 0.55})`; c.fillRect(0, 0, W, H);
+        centerText(c, 'конец фрагмента', H * 0.42, Math.round(W / 30), { a, font: 'Unbounded, sans-serif', weight: 400, col: '#ffb648' });
+        centerText(c, 'продолжение следует. всегда.', H * 0.55, Math.round(W / 16), { a, italic: true });
+      }
+      postFx(c, s, film.t);
+    }
+    c.restore();
+    film.raf = requestAnimationFrame(render);
+  };
+  const shoot = () => {
+    armAudio(); resizeFilm();
+    const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;
+    film.data = buildFilm(seed); film.scene = setupScene(film.data);
+    film.playing = true; film.t = 0; film.lt = 0; film.phase = 'title'; film.li = 0; film.last = performance.now();
+    S.films = film.data.no; sync();
+    $('title').textContent = film.data.title;
+    $('meta').innerHTML = `${film.data.genre} · ${film.data.year} · <b>${SCENES[film.data.kind].slug.toLowerCase()}</b><br>в главных ролях: Аяна и тот, кто очень волнуется`;
+    $('poster').textContent = { rain: '🌧️', snow: '❄️', sunset: '🌅', train: '🚃', roof: '🌙', sakura: '🌸', festival: '🎆', cafe: '☕' }[film.data.kind];
+    $('shootBtn').textContent = '🎬 Ещё фрагмент';
+    if (humGain) humGain.gain.setTargetAtTime(film.data.kind === 'rain' ? 0.09 : 0.05, ac.currentTime, 0.5);
+    cancelAnimationFrame(film.raf); film.raf = requestAnimationFrame(render);
+    $('viewKino').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  canvas.addEventListener('click', () => {
+    if (!film.playing) return shoot();
+    if (film.phase === 'title') { film.phase = 'slug'; film.lt = 0; }
+    else if (film.phase === 'slug') { film.phase = 'lines'; film.lt = 0; film.li = 0; }
+    else if (film.phase === 'lines') { const line = film.data.lines[film.li]; if (film.lt * 28 < line.length) film.lt = line.length / 28; else { film.li++; film.lt = 0; if (film.li >= film.data.lines.length) { film.phase = 'end'; film.lt = 0; } } }
+    else if (film.phase === 'end') shoot();
+  });
+  $('shootBtn').addEventListener('click', shoot);
+  $('saveBtn').addEventListener('click', () => {
+    if (!film.data) return;
+    const a = document.createElement('a'); a.download = `кадр — ${film.data.title}.png`; a.href = canvas.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
+  });
+
+  // заставка на экране кино, пока ничего не снято
+  const idle = () => { resizeFilm(); if (!W) return; const c = ctx; c.save(); c.setTransform(DPR, 0, 0, DPR, 0, 0); c.fillStyle = '#000'; c.fillRect(0, 0, W, H); centerText(c, 'нажми «Снять фрагмент»', H * 0.5, Math.round(W / 22), { italic: true, col: '#9d94c7' }); c.fillStyle = '#000'; c.fillRect(0, 0, W, H * 0.08); c.fillRect(0, H * 0.92, W, H * 0.08); c.restore(); };
+
+  /* ================= СТАРТ ================= */
+  sync(); nextWord();
+  window.__kino = { film, shoot, buildFilm, setupScene, SCENE_DRAW };
+  if (S.pending > 0) $('unlock').innerHTML = '🎬 <b>тебя ждёт фрагмент фильма</b> во вкладке «Кино»';
+  document.fonts?.ready.then(idle); setTimeout(idle, 100);
+})();
+</script>
+</body>
+</html>
