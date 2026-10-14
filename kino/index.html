@@ -79,6 +79,27 @@
     .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 26px; line-height: 1.6; }
     .foot a { color: var(--rose); text-decoration: none; }
     .hidden { display: none !important; }
+    /* ---- настоящие сцены ---- */
+    .real-lead { color: #cfc9e2; font-size: 15px; line-height: 1.55; text-align: center; margin: 0 0 16px; }
+    .real-note { color: var(--muted); font-size: 12px; text-align: center; margin-top: 14px; }
+    .real-list { display: grid; gap: 16px; }
+    .scene { background: linear-gradient(180deg, #171727, #10101c); border: 1px solid rgba(255,255,255,.06); border-radius: 20px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,.4); }
+    .vid { position: relative; aspect-ratio: 16 / 9; background: #000; cursor: pointer; }
+    .vid img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .85; transition: .3s; }
+    .vid:hover img { opacity: 1; transform: scale(1.02); }
+    .vid .play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px; border-radius: 50%; background: rgba(255,92,138,.92); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px rgba(255,92,138,.7); transition: .2s; }
+    .vid .play::after { content: ''; border-left: 20px solid #fff; border-top: 12px solid transparent; border-bottom: 12px solid transparent; margin-left: 5px; }
+    .vid:hover .play { transform: translate(-50%, -50%) scale(1.08); }
+    .vid iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .vid .bars { position: absolute; left: 0; right: 0; height: 6%; background: #000; pointer-events: none; } .vid .bars.t { top: 0; } .vid .bars.b { bottom: 0; }
+    .scene-body { padding: 16px 18px 18px; }
+    .scene-k { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: var(--amber); }
+    .scene-t { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 600; font-size: 24px; color: #fff; margin: 4px 0 10px; line-height: 1.1; }
+    .scene-q { font-size: 16px; line-height: 1.5; color: #efe9ff; border-left: 2px solid var(--violet); padding-left: 12px; margin: 0 0 12px; }
+    .scene-n { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 19px; line-height: 1.35; color: var(--rose); margin: 0; }
+    .scene-n::before { content: '— '; }
+    .scene-l { display: inline-block; margin-top: 10px; font-size: 12px; color: var(--muted); text-decoration: none; }
+    .scene-l:hover { color: #fff; }
     @media (max-width: 480px) { .screen { aspect-ratio: 4 / 3; } }
     @media (max-width: 380px) { .opts { grid-template-columns: 1fr; } }
   </style>
@@ -94,6 +115,7 @@
     <div class="tabs">
       <button class="tab active" id="tabWords">Слова о любви</button>
       <button class="tab" id="tabKino">Кино<span class="dot hidden" id="kinoDot"></span></button>
+      <button class="tab" id="tabReal">Сцены</button>
     </div>
 
     <!-- СЛОВА -->
@@ -119,6 +141,13 @@
         <div><h3 id="title">Фильм, которого ещё нет</h3><p id="meta">Нажми «Снять фрагмент». Каждый раз это будет новая сцена, новое название и новые слова.</p></div>
       </div>
       <div class="row"><button class="btn amber" id="shootBtn">🎬 Снять фрагмент</button><button class="btn ghost" id="saveBtn">сохранить кадр</button></div>
+    </section>
+
+    <!-- НАСТОЯЩИЕ СЦЕНЫ -->
+    <section class="view" id="viewReal">
+      <p class="real-lead">Это уже не выдумка. Настоящие сцены из настоящих фильмов, в которых говорят то, что я хотел сказать тебе. Под каждой моя записка.</p>
+      <div class="real-list" id="realList"></div>
+      <p class="real-note">Ролики с YouTube. Если не грузятся, открой по ссылке под сценой.</p>
     </section>
 
     <div class="foot">Всё здесь генерируется прямо сейчас, только для тебя.<br><a href="../hub/">← все игры для Аяны</a></div>
@@ -263,9 +292,42 @@
   $('skipBtn').addEventListener('click', () => { S.streak = 0; nextWord(); });
 
   /* ================= ВКЛАДКИ ================= */
-  const showTab = (k) => { $('tabWords').classList.toggle('active', k === 'words'); $('tabKino').classList.toggle('active', k === 'kino'); $('viewWords').classList.toggle('active', k === 'words'); $('viewKino').classList.toggle('active', k === 'kino'); if (k === 'kino') { resizeFilm(); if (S.pending > 0) { S.pending--; sync(); shoot(); } else if (!film.playing) idle(); } };
+  const showTab = (k) => { ['words', 'kino', 'real'].forEach((n) => { $('tab' + n[0].toUpperCase() + n.slice(1)).classList.toggle('active', k === n); $('view' + n[0].toUpperCase() + n.slice(1)).classList.toggle('active', k === n); }); if (k === 'kino') { resizeFilm(); if (S.pending > 0) { S.pending--; sync(); shoot(); } else if (!film.playing) idle(); } };
   $('tabWords').addEventListener('click', () => showTab('words'));
   $('tabKino').addEventListener('click', () => showTab('kino'));
+  $('tabReal').addEventListener('click', () => showTab('real'));
+
+  /* ================= НАСТОЯЩИЕ СЦЕНЫ ================= */
+  const REAL = [
+    ['RESwG23_YGw', 'Ноттинг Хилл', 1999, '«Я всего лишь девушка, которая стоит перед парнем и просит её полюбить.»', 'Здесь всё наоборот: я всего лишь парень, который стоит перед тобой. Остальное ты уже знаешь.'],
+    ['bFsgLhx9dxg', 'Гордость и предубеждение', 2005, '«Вы околдовали меня, душой и телом. И я люблю… люблю… люблю вас.»', 'Дарси запинается на слове «люблю». Я его понимаю, как никто.'],
+    ['G8qHfSLDX3k', 'Реальная любовь', 2003, '«Для меня ты совершенство.»', 'Он написал это на карточках, потому что не смог сказать вслух. Я сделал пять игр. По той же причине.'],
+    ['g4ODPyUxLNw', 'Когда Гарри встретил Салли', 1989, '«Когда понимаешь, что хочешь провести с кем-то всю жизнь, хочется, чтобы она началась как можно скорее.»', 'Самое точное описание того, что со мной происходит.'],
+    ['whHnZ-HBtFU', 'Твоё имя', 2016, '«Я искал тебя. Я всё это время искал тебя.»', 'Они забыли имена, но помнили, что искали друг друга. Твоё имя я не забуду. Аяна.'],
+    ['JXW57j0lLQA', 'Торадора!', 2009, '«Рюдзи… я люблю тебя. Очень.»', 'Таига год прятала это за злостью, а потом выпалила всё разом. Я прятал за шутками.'],
+    ['Nq-6gXyIxhg', 'Форма голоса', 2016, '«Я… тебя… люблю. — Луна? Да, красивая.»', 'Он услышал «луна» вместо «люблю». Поэтому я тебе пишу, а не говорю. Чтобы ты точно не перепутала.'],
+    ['AyrP-pwDayE', 'Джерри Магуайер', 1996, '«Ты покорил меня с первого «привет».»', 'У нас было так же. Я просто дольше молчал.'],
+    ['bkCJwrp-k6g', 'Дневник памяти', 2004, '«Это не закончилось. Это до сих пор не закончилось.»', 'Про «до сих пор» я понял, когда увидел тебя во второй раз.'],
+    ['4YbECHb1VN4', 'Ходячий замок', 2004, '«Сердце — тяжёлая ноша.»', 'Софи не побоялась взять его в руки. Я бы доверил тебе своё. Оно, правда, немного дрожит.'],
+    ['F0oQcQMJ2Ss', '5 сантиметров в секунду', 2007, '«Со скоростью пять сантиметров в секунду падают лепестки сакуры.»', 'Этот фильм про тех, кто не успел сказать. Я решил успеть.'],
+    ['-xpKFT-ITaY', 'Дитя погоды', 2019, '«Мне не нужно голубое небо. Мне нужна ты.»', 'Пусть дождь идёт хоть вечность. Лишь бы под одним зонтом.'],
+    ['1YGfrGKK9Mo', 'Титаник', 1997, '«Я лечу, Джек!»', 'Если понадобится, я тоже буду держать. Сколько угодно.'],
+    ['cZAw8qxn0ZE', 'Ла-Ла Ленд', 2016, '«Город звёзд, ты светишь только для меня?»', 'Семь звёзд в первой игре я подстроил. Но этот город, кажется, правда светит для тебя.'],
+  ];
+  const realList = $('realList');
+  REAL.forEach(([id, title, year, quote, note], i) => {
+    const el = document.createElement('article'); el.className = 'scene';
+    el.innerHTML = `<div class="vid" data-id="${id}"><img loading="lazy" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="${title}"><div class="bars t"></div><div class="bars b"></div><div class="play"></div></div>
+      <div class="scene-body"><div class="scene-k">сцена № ${i + 1} · ${year}</div><div class="scene-t">${title}</div><p class="scene-q">${quote}</p><p class="scene-n">${note}</p><a class="scene-l" href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener">открыть на YouTube ↗</a></div>`;
+    realList.appendChild(el);
+  });
+  realList.addEventListener('click', (e) => {
+    const v = e.target.closest('.vid'); if (!v || v.querySelector('iframe')) return;
+    // одновременно играет только одна сцена
+    realList.querySelectorAll('.vid iframe').forEach((f) => { const p = f.parentElement; const id = p.dataset.id; p.innerHTML = `<img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt=""><div class="bars t"></div><div class="bars b"></div><div class="play"></div>`; });
+    v.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${v.dataset.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1" title="сцена" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+    if (soundOn) setSound(false);
+  });
 
   /* ================= КИНО ================= */
   const canvas = $('film'), ctx = canvas.getContext('2d');
