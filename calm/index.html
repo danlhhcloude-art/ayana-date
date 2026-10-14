@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Если тебе грустно. Подыши со мной.">
+  <meta name="theme-color" content="#0b1020">
+  <title>Если тебе грустно</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: #eef2ff; background: linear-gradient(180deg, #0b1020, #141a3a 60%, #1a1f44); min-height: 100vh; overflow-x: hidden; }
+    .wrap { max-width: 480px; margin: 0 auto; padding: 26px 18px 60px; text-align: center; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: #8fd3ff; text-shadow: 0 0 8px rgba(143,211,255,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(22px, 6.5vw, 32px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px rgba(143,211,255,.6); }
+    .lead { color: #c9d2f0; font-size: 15px; line-height: 1.6; margin: 0 auto 18px; max-width: 400px; }
+    .moods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .mood { font: inherit; color: #eef2ff; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 14px 10px; cursor: pointer; font-weight: 600; font-size: 14px; transition: .2s; }
+    .mood:hover, .mood.on { border-color: #8fd3ff; box-shadow: 0 0 16px rgba(143,211,255,.3); background: rgba(143,211,255,.1); }
+    .words { min-height: 70px; font-family: 'Caveat', cursive; font-size: clamp(22px, 6.5vw, 30px); line-height: 1.2; color: #fff; margin: 0 auto 10px; max-width: 420px; opacity: 0; transform: translateY(6px); transition: .6s; }
+    .words.show { opacity: 1; transform: none; }
+    .breath { position: relative; width: min(70vw, 300px); height: min(70vw, 300px); margin: 10px auto; }
+    .ring { position: absolute; inset: 0; border-radius: 50%; border: 1px dashed rgba(255,255,255,.2); }
+    .orb { position: absolute; inset: 15%; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #cfe8ff, #6fa8ff 55%, #3b5bdb); box-shadow: 0 0 40px rgba(111,168,255,.6), 0 0 100px rgba(111,168,255,.3); transform: scale(.6); transition: transform 4s ease-in-out; }
+    .orb.in { transform: scale(1); transition-duration: 4s; }
+    .orb.hold { transform: scale(1); transition-duration: 7s; }
+    .orb.out { transform: scale(.6); transition-duration: 8s; }
+    .phase { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: 'Unbounded', sans-serif; font-size: 13px; letter-spacing: .3em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.5); pointer-events: none; }
+    .count { font-size: 13px; color: #9fb0e8; margin-top: 4px; }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
+    .btn.blue { border-color: #8fd3ff; box-shadow: 0 0 12px rgba(143,211,255,.5); }
+    .after { display: none; margin-top: 22px; background: rgba(255,255,255,.05); border: 1px solid rgba(143,211,255,.3); border-radius: 20px; padding: 20px; text-align: left; }
+    .after.show { display: block; animation: rise .6s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .after h3 { font-family: 'Caveat', cursive; font-size: 28px; margin: 0 0 8px; color: #cfe8ff; }
+    .after ul { margin: 0; padding-left: 18px; color: #d5ddf5; font-size: 14px; line-height: 1.8; }
+    .after p { color: #eef2ff; font-size: 15px; line-height: 1.6; margin: 10px 0 0; }
+    .foot { color: #9fb0e8; font-size: 12px; margin-top: 28px; }
+    .foot a { color: #8fd3ff; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="tag">если тебе грустно</div>
+    <h1>Я рядом. Подыши со мной</h1>
+    <p class="lead">Аяна, эта страница для плохих дней. Выбери, что сейчас, и просто дыши вместе с шаром. Я буду говорить тихо.</p>
+    <div class="moods">
+      <button class="mood" data-m="sad">мне грустно</button>
+      <button class="mood" data-m="anx">мне тревожно</button>
+      <button class="mood" data-m="lone">мне одиноко</button>
+      <button class="mood" data-m="tired">я устала</button>
+    </div>
+    <div class="words" id="words"></div>
+    <div class="breath"><div class="ring"></div><div class="orb" id="orb"></div><div class="phase" id="phase">нажми «начать»</div></div>
+    <div class="count" id="count"></div>
+    <div class="row"><button class="btn blue" id="startBtn">начать дышать</button><button class="btn" id="soundBtn">🔈 звук</button></div>
+    <div class="after" id="after">
+      <h3>Стало хоть немного легче?</h3>
+      <ul id="tips"></ul>
+      <p id="afterText"></p>
+    </div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a> · <a href="../hug/">обнять →</a></div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const MOODS = {
+    sad: { words: ['Грустить можно. Я не буду говорить «не грусти». Я просто рядом.', 'Это пройдёт. Не потому что так говорят, а потому что ты сильнее, чем этот день.', 'Можно ничего не делать. Можно просто дышать. Это уже достаточно.'], tips: ['Выпей воды. Серьёзно, прямо сейчас.', 'Напиши мне. Любое слово. Даже точку.', 'Укройся. Тепло помогает больше, чем кажется.'], after: 'Грусть не отменяет того, какая ты. Ты всё та же Аяна, которую я люблю. Просто сегодня ей тяжело. Я рядом.' },
+    anx: { words: ['Тревога врёт. Она говорит «всё плохо», но прямо сейчас ты в безопасности.', 'Посмотри вокруг. Назови три вещи, которые видишь. Ты здесь. Сейчас.', 'Медленный выдох. Ещё один. Твоё тело умеет успокаиваться, дай ему время.'], tips: ['Назови пять вещей, которые видишь, четыре, которых касаешься, три, которые слышишь.', 'Отложи телефон после этого. Минут на десять.', 'Выйди на воздух, хоть на балкон.'], after: 'Что бы ни случилось, мы разберёмся. Не ты одна, а мы. Я не ухожу. Дыши.' },
+    lone: { words: ['Ты не одна. Вот прямо сейчас кто-то думает о тебе. Это я.', 'Одиночество громкое, но оно врёт. Я здесь, даже если не рядом физически.', 'Эта страница существует только потому, что ты для кого-то очень важна.'], tips: ['Напиши мне. Я отвечу. Всегда.', 'Открой «Почту»: там открытка, которую я написал для тебя.', 'Обними себя за плечи. Я знаю, звучит странно. Работает.'], after: 'Я сделал одиннадцать игр и почту, чтобы ты никогда не чувствовала себя одной. Если этого мало, я сделаю ещё. Люблю.' },
+    tired: { words: ['Устать не стыдно. Ты много тянешь. Дай себе опустить руки хоть на пять минут.', 'Ничего не надо решать прямо сейчас. Всё подождёт. Ты важнее.', 'Выдох длиннее вдоха. Так тело понимает, что можно отдохнуть.'], tips: ['Ложись пораньше. Мир подождёт, обещаю.', 'Съешь что-нибудь тёплое.', 'Загляни на страницу «Спокойной ночи», я там тебя укладываю.'], after: 'Ты не обязана быть сильной каждый день. Сегодня можно быть просто уставшей. А я буду сильным за двоих.' },
+  };
+  let mood = 'sad', running = false, cycle = 0, timer = null, wi = 0;
+  const show = (t) => { const w = $('words'); w.textContent = t; w.classList.remove('show'); void w.offsetWidth; w.classList.add('show'); };
+  document.querySelectorAll('.mood').forEach((b) => b.addEventListener('click', () => { mood = b.dataset.m; document.querySelectorAll('.mood').forEach((x) => x.classList.toggle('on', x === b)); wi = 0; show(MOODS[mood].words[0]); $('after').classList.remove('show'); }));
+
+  /* звук: мягкий пад и волна на выдохе */
+  let ac, master, soundOn = false, padNodes = [];
+  const ensure = () => { if (ac) return; ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+    [130.81, 196, 261.63, 329.63].forEach((f, i) => { const o = ac.createOscillator(); o.type = i % 2 ? 'triangle' : 'sine'; o.frequency.value = f; const g = ac.createGain(); g.gain.value = 0.05; const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 600; o.connect(lp); lp.connect(g); g.connect(master); o.start(); padNodes.push(g); }); };
+  const setSound = (on) => { ensure(); if (ac.state === 'suspended') ac.resume(); soundOn = on; $('soundBtn').textContent = on ? '🎧 звук' : '🔈 звук'; master.gain.cancelScheduledValues(ac.currentTime); master.gain.linearRampToValueAtTime(on ? 1 : 0, ac.currentTime + 1); };
+  $('soundBtn').addEventListener('click', () => setSound(!soundOn));
+  const swell = (up, dur) => { if (!soundOn) return; padNodes.forEach((g, i) => { g.gain.cancelScheduledValues(ac.currentTime); g.gain.linearRampToValueAtTime(up ? 0.08 + i * 0.01 : 0.03, ac.currentTime + dur); }); };
+
+  const orb = $('orb'), phase = $('phase');
+  const step = (name, cls, dur, label) => new Promise((res) => { orb.className = 'orb ' + cls; phase.textContent = label; swell(cls === 'in', dur); timer = setTimeout(res, dur * 1000); });
+  const run = async () => {
+    running = true; cycle = 0; $('startBtn').textContent = 'остановить'; $('after').classList.remove('show');
+    if (!soundOn) setSound(true);
+    show(MOODS[mood].words[0]);
+    while (running && cycle < 4) {
+      await step('in', 'in', 4, 'вдох · 4'); if (!running) break;
+      await step('hold', 'hold', 7, 'задержи · 7'); if (!running) break;
+      await step('out', 'out', 8, 'выдох · 8'); if (!running) break;
+      cycle++; $('count').textContent = `круг ${cycle} из 4`;
+      wi = (wi + 1) % MOODS[mood].words.length; show(MOODS[mood].words[wi]);
+    }
+    if (running) finish();
+  };
+  const finish = () => { running = false; orb.className = 'orb'; phase.textContent = 'ты молодец'; $('startBtn').textContent = 'ещё раз'; $('tips').innerHTML = MOODS[mood].tips.map((t) => `<li>${t}</li>`).join(''); $('afterText').textContent = MOODS[mood].after; $('after').classList.add('show'); setTimeout(() => $('after').scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); };
+  $('startBtn').addEventListener('click', () => { if (running) { running = false; clearTimeout(timer); orb.className = 'orb'; phase.textContent = 'пауза'; $('startBtn').textContent = 'начать дышать'; } else run(); });
+  show('Выбери, что сейчас с тобой. Или просто нажми «начать».');
+})();
+</script>
+</body>
+</html>
