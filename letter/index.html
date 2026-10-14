@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Письмо для Аяны. Всё, что я хотел сказать, без игр.">
+  <meta name="theme-color" content="#0a0a14">
+  <title>Письмо для Аяны</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    :root { --bg: #0a0a14; --paper: #fffaf2; --ink: #2b1a28; --muted: #8f8aaa; --rose: #ff5c8a; --gold: #ffd36b; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: #f6f1ff; }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(60% 40% at 50% 0%, rgba(255,92,138,.14), transparent 70%), radial-gradient(40% 30% at 100% 100%, rgba(255,211,107,.10), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 26px 16px 70px; }
+    header { text-align: center; margin-bottom: 22px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--gold); text-shadow: 0 0 8px rgba(255,211,107,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(26px, 8vw, 40px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px var(--rose), 0 0 30px rgba(255,92,138,.5); }
+    .lead { color: #cfc9e2; font-size: 15px; line-height: 1.55; margin: 0 auto; max-width: 420px; }
+    .paper { background: var(--paper); color: var(--ink); border-radius: 22px; padding: 34px 26px 30px; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.1); position: relative; background-image: repeating-linear-gradient(transparent 0 31px, rgba(43,26,40,.06) 31px 32px); }
+    .paper::before { content: '💌'; position: absolute; top: -16px; right: 22px; font-size: 34px; transform: rotate(10deg); }
+    .date { font-family: 'Manrope', sans-serif; font-size: 12px; color: #9a7f8a; letter-spacing: .1em; text-transform: uppercase; }
+    .greet { font-family: 'Caveat', cursive; font-size: 38px; margin: 6px 0 14px; color: #c2497a; line-height: 1; }
+    .paper h2 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 600; font-size: 26px; margin: 26px 0 6px; color: #7a2a52; }
+    .paper p { font-family: 'Cormorant Garamond', serif; font-size: 20px; line-height: 32px; margin: 0 0 14px; }
+    .paper p.big { font-family: 'Caveat', cursive; font-size: 30px; line-height: 32px; color: #c2497a; }
+    .sign { font-family: 'Caveat', cursive; font-size: 32px; color: #c2497a; text-align: right; margin-top: 20px; }
+    .sign small { display: block; font-family: 'Manrope', sans-serif; font-size: 12px; color: #9a7f8a; letter-spacing: .1em; text-transform: uppercase; margin-top: 2px; }
+    .reveal { opacity: 0; transform: translateY(14px); transition: opacity .9s ease, transform .9s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 22px; cursor: pointer; text-decoration: none; }
+    .btn.rose { border-color: var(--rose); box-shadow: 0 0 12px rgba(255,92,138,.5); }
+    .after { text-align: center; margin-top: 22px; font-family: 'Caveat', cursive; font-size: 30px; color: #fff; min-height: 40px; text-shadow: 0 0 14px rgba(255,92,138,.6); }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+    .foot a { color: var(--rose); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="tag">без игр</div>
+      <h1>Письмо для Аяны</h1>
+      <p class="lead">Все игры здесь были способом сказать одно. Но, наверное, это нужно сказать и просто словами. Вот они.</p>
+    </header>
+
+    <article class="paper">
+      <div class="date">октябрь 2026</div>
+      <div class="greet">Аяна,</div>
+
+      <p class="reveal">я долго не решался написать это письмо. Не потому что не знал, что сказать. Наоборот: я знал слишком много, и всё это не помещалось ни в одно сообщение. Поэтому я сначала сделал игры. Звёзды, зонт, кинотеатр, открытки. Мне казалось, если спрятать чувство в красивую обёртку, будет не так страшно его отдавать. Но ты, наверное, уже всё поняла. Поэтому давай без обёртки.</p>
+
+      <h2 class="reveal">Как это началось</h2>
+      <p class="reveal">Я не помню точного момента. Это нечестно, я знаю: в фильмах всегда есть сцена, где всё меняется. У меня её не было. Было по-другому. Сначала я просто заметил, что жду, когда ты напишешь. Потом заметил, что улыбаюсь, когда вижу твоё имя на экране. Потом поймал себя на том, что пересказываю тебе в голове свой день, хотя ты об этом не просила. А потом понял, что уже давно не представляю этот день без тебя. Вот тогда, кажется, и началось. А может, гораздо раньше, просто я тугодум.</p>
+
+      <h2 class="reveal">Что я чувствую</h2>
+      <p class="reveal">Я люблю тебя. Это первое и главное, и я мог бы закончить письмо прямо здесь. Но я хочу, чтобы ты знала, из чего это состоит.</p>
+      <p class="reveal">Я люблю, как ты смеёшься: сначала глазами, и только потом всем остальным. Люблю, как ты говоришь о том, что тебе интересно, так, что хочется слушать часами, даже если я ничего не понимаю. Люблю, что ты замечаешь мелочи, мимо которых все проходят, и показываешь их мне. Люблю твоё «ладно», когда ты соглашаешься не с миром, а со мной. Люблю, как ты поправляешь волосы, когда волнуешься, и как делаешь вид, что не волнуешься.</p>
+      <p class="reveal">Рядом с тобой я становлюсь спокойнее. Тише. Лучше. Это не комплимент тебе, это просто факт обо мне. Ты как будто делаешь громкость мира чуть ниже, и в этой тишине я наконец слышу, чего хочу. А хочу я очень простого: чтобы ты была рядом. Сегодня, завтра, и когда нам будет по восемьдесят и мы будем спорить, кто из нас забыл выключить чайник.</p>
+
+      <h2 class="reveal">Чего я боюсь</h2>
+      <p class="reveal">Я боюсь показаться навязчивым. Боюсь, что всё это слишком много: одиннадцать игр, открытки каждый день, ромашка, у которой нет другого ответа. Я понимаю, как это выглядит. Но я ничего не могу с собой сделать: когда я люблю, я делаю. Я не умею любить вполсилы. Если тебе когда-нибудь станет слишком, скажи. Я услышу. Я умею слышать, особенно тебя.</p>
+      <p class="reveal">И ещё я боюсь, что ты не поверишь. Что подумаешь: красиво написано, но это просто слова. Поэтому я и не остановился на словах. Каждая страница здесь сделана руками, долгими вечерами, ради одного человека. Я не умею доказывать иначе.</p>
+
+      <h2 class="reveal">Что я обещаю</h2>
+      <p class="reveal">Я не обещаю, что всегда будет легко. Я обещаю, что буду рядом, когда не будет легко. Обещаю не исчезать. Обещаю говорить правду, даже если она неудобная, и слушать твою, даже если она мне не нравится. Обещаю помнить, как ты пьёшь чай, и какой десерт ты никогда не делишь честно. Обещаю, что буду стараться. Каждый день. Не потому что надо, а потому что не могу иначе рядом с тобой.</p>
+      <p class="reveal">И обещаю самое главное: что бы ты ни ответила на это письмо, ты ничего мне не должна. Я писал его не для ответа. Я писал его, потому что правда должна быть сказана, а эта правда у меня самая большая.</p>
+
+      <h2 class="reveal">Вместо конца</h2>
+      <p class="reveal">Если ты дочитала досюда, значит, у тебя хватило терпения на мою длинную речь. Спасибо. Это уже очень много.</p>
+      <p class="reveal big">Аяна, я тебя люблю. Давно. Сильно. По-настоящему. Без условий, без сроков и без запасного плана. Ты лучшее, что случилось со мной, и я собираюсь напоминать тебе об этом каждый день, пока ты не устанешь. А потом ещё немного.</p>
+      <p class="reveal">Всё, что ты видела на этих страницах, было про это. Звёзды, которые я подстроил. Кино, которого нет. Пятьдесят причин, у которых на самом деле одна. Ромашка. Открытки. Сад. Обними. Всё это один человек говорил одной тебе одно и то же.</p>
+
+      <div class="sign reveal">Твой.<small>и ничей больше</small></div>
+    </article>
+
+    <div class="row"><button class="btn rose" id="trueBtn">это всё правда</button><a class="btn" href="../hub/">ко всем играм</a></div>
+    <div class="after" id="after"></div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a></div>
+  </div>
+
+<script>
+(() => {
+  const els = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12 });
+  els.forEach((el) => io.observe(el));
+  const LINES = ['Да. Каждое слово.', 'Я проверил трижды. Правда.', 'Аяна, я тебя люблю.', 'И завтра тоже будет правда.', 'И через год. И потом.'];
+  let k = 0;
+  document.getElementById('trueBtn').addEventListener('click', () => {
+    document.getElementById('after').textContent = LINES[k % LINES.length]; k++;
+    const heart = confetti.shapeFromPath({ path: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' });
+    confetti({ particleCount: 60, spread: 120, startVelocity: 22, ticks: 140, gravity: 0.3, shapes: [heart], scalar: 2, colors: ['#ff5c8a', '#ff8fb3', '#ffd36b', '#fff'], origin: { y: 0.7 } });
+  });
+})();
+</script>
+</body>
+</html>

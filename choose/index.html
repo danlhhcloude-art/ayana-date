@@ -112,7 +112,7 @@
   $('nextBtn').addEventListener('click', () => { i++; if (i >= PAIRS.length) finish(); else render(); });
   const finish = () => {
     $('game').classList.add('hidden'); $('bar').style.width = '100%';
-    $('finalText').textContent = 'Я посчитал по всем шестнадцати ответам. Получилось сто процентов. Если честно, я знал результат заранее: я выбрал бы тебя при любом раскладе. А это и есть совместимость.';
+    $('finalText').textContent = 'Я посчитал по всем шестнадцати ответам. Получилось сто процентов. Если честно, я знал результат заранее: я выбрал бы тебя при любом раскладе. Кофе или чай, море или горы, что угодно. Там, где есть ты, мой ответ всегда один. Я люблю тебя, Аяна. Это и есть совместимость.';
     $('summary').innerHTML = picks.map((k, j) => `<li>${PAIRS[j][k][0]} ${PAIRS[j][k][1]}</li>`).join('');
     $('final').classList.add('show');
     confetti({ particleCount: 140, spread: 100, startVelocity: 30, ticks: 160, colors: ['#ffd36b', '#ff5c8a', '#a78bfa', '#4fd1c5', '#fff'], origin: { y: 0.5 } });
