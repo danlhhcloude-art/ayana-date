@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Что бы ты выбрала? Я отвечу на каждый выбор.">
+  <meta name="theme-color" content="#0a0a14">
+  <title>Что бы ты выбрала</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    :root { --bg: #0a0a14; --ink: #f6f1ff; --muted: #8f8aaa; --rose: #ff5c8a; --gold: #ffd36b; --violet: #a78bfa; --teal: #4fd1c5; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(50% 35% at 50% 0%, rgba(167,139,250,.14), transparent 70%), radial-gradient(40% 30% at 0% 100%, rgba(255,92,138,.10), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 22px 14px 60px; }
+    header { text-align: center; margin-bottom: 14px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--violet); text-shadow: 0 0 8px rgba(167,139,250,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(24px, 7vw, 34px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px var(--rose), 0 0 30px rgba(255,92,138,.5); }
+    .lead { color: #cfc9e2; font-size: 15px; line-height: 1.55; margin: 0 auto; max-width: 400px; }
+    .prog { height: 6px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; margin: 14px 0; }
+    .prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--violet), var(--rose)); transition: width .4s; }
+    .q { text-align: center; font-family: 'Unbounded', sans-serif; font-size: 12px; letter-spacing: .25em; text-transform: uppercase; color: var(--muted); margin: 8px 0 12px; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .opt { background: linear-gradient(160deg, #171430, #110e22); border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 22px 12px; text-align: center; cursor: pointer; transition: .2s; font: inherit; color: var(--ink); }
+    .opt .em { display: block; font-size: 40px; margin-bottom: 8px; filter: drop-shadow(0 0 8px rgba(255,255,255,.2)); }
+    .opt .w { font-weight: 700; font-size: 15px; }
+    .opt:hover { transform: translateY(-3px); border-color: var(--violet); box-shadow: 0 0 20px rgba(167,139,250,.35); }
+    .opt.picked { border-color: var(--gold); box-shadow: 0 0 22px rgba(255,211,107,.5); transform: scale(1.03); }
+    .opt.dim { opacity: .4; }
+    .or { text-align: center; color: var(--muted); font-family: 'Caveat', cursive; font-size: 22px; margin: 6px 0; }
+    .react { margin-top: 14px; min-height: 70px; background: rgba(255,255,255,.04); border-left: 3px solid var(--rose); border-radius: 0 14px 14px 0; padding: 12px 14px; font-family: 'Caveat', cursive; font-size: 23px; line-height: 1.2; color: #fff; opacity: 0; transform: translateY(6px); transition: .4s; }
+    .react.show { opacity: 1; transform: none; }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
+    .btn.rose { border-color: var(--rose); box-shadow: 0 0 12px rgba(255,92,138,.5); }
+    .hidden { display: none !important; }
+    .final { display: none; margin-top: 10px; background: linear-gradient(160deg, #1f1536, #141026); border-radius: 22px; padding: 24px 20px; text-align: center; box-shadow: 0 0 0 1px rgba(255,211,107,.35), 0 0 30px rgba(255,211,107,.2); }
+    .final.show { display: block; animation: rise .6s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .final .big { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: 56px; color: var(--gold); text-shadow: 0 0 20px rgba(255,211,107,.6); }
+    .final h2 { font-family: 'Caveat', cursive; font-size: 32px; margin: 4px 0 8px; color: #fff; }
+    .final p { margin: 6px 0; color: #e8e2f5; line-height: 1.55; }
+    .final ul { text-align: left; margin: 12px auto 0; padding-left: 20px; color: #d9d2f5; font-size: 14px; line-height: 1.7; max-width: 320px; }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+    .foot a { color: var(--rose); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="tag">выбирай</div>
+      <h1>Что бы ты выбрала</h1>
+      <p class="lead">Аяна, шестнадцать пар. Выбирай, что ближе. На каждый ответ я отвечу. А в конце посчитаю нашу совместимость. Честно. Почти.</p>
+    </header>
+    <div class="prog"><i id="bar"></i></div>
+    <div id="game">
+      <div class="q" id="q">1 / 16</div>
+      <div class="pair" id="pair"></div>
+      <div class="react" id="react"></div>
+      <div class="row"><button class="btn rose hidden" id="nextBtn">дальше →</button></div>
+    </div>
+    <div class="final" id="final">
+      <div class="big" id="score">100%</div>
+      <h2>совместимость</h2>
+      <p id="finalText"></p>
+      <ul id="summary"></ul>
+      <div class="row"><a class="btn rose" href="../hub/">другие игры →</a><button class="btn" id="againBtn">ещё раз</button></div>
+    </div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a></div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  // [эмодзи, вариант, ответ на выбор] × 2
+  const PAIRS = [
+    [['☕', 'кофе', 'Кофе. Запомнил. Теперь буду знать, что приносить утром.'], ['🍵', 'чай', 'Чай. Значит, я учусь заваривать правильно. Уже гуглю.']],
+    [['🌊', 'море', 'Море. Я уже слышу, как ты смеёшься над волнами. Поедем.'], ['🏔️', 'горы', 'Горы. Тишина, высота и ты. Я бы шёл за тобой на любую.']],
+    [['🌅', 'утро', 'Ты утренняя. А я готов вставать раньше, если рядом ты.'], ['🌙', 'ночь', 'Ночная. Я тоже. Самые важные разговоры случаются после полуночи.']],
+    [['🎬', 'кино', 'Кино. Последний ряд, попкорн пополам, шёпотом комментируем.'], ['🚶', 'прогулка', 'Прогулка. Без маршрута. Главное, чтобы долго.']],
+    [['🍕', 'пицца', 'Пицца. Четыре сыра или с грибами, скажи, и я запомню навсегда.'], ['🍜', 'рамен', 'Рамен. В два ночи, после долгого разговора. Классика.']],
+    [['❄️', 'зима', 'Зима. Значит, тебе нужен кто-то с тёплыми руками. Я подхожу.'], ['☀️', 'лето', 'Лето. Босиком по траве, поздние закаты. Я уже там с тобой.']],
+    [['📚', 'книга', 'Книга. Читай мне вслух иногда. Я буду слушать и смотреть на тебя.'], ['🎧', 'музыка', 'Музыка. Дай один наушник. Это самый романтичный жест на свете.']],
+    [['🐱', 'кот', 'Кот. Независимый, но мурчит, когда любят. Я тебя понял.'], ['🐶', 'пёс', 'Пёс. Преданный и всегда радуется. Это, собственно, я.']],
+    [['🌧️', 'дождь', 'Дождь. Один зонт на двоих и никуда не спешить.'], ['🌤️', 'солнце', 'Солнце. Ты и так светишь, но пусть будет двойное.']],
+    [['🍰', 'сладкое', 'Сладкое. Делим десерт пополам. Твоя половина чуть больше.'], ['🧀', 'солёное', 'Солёное. Значит, десерт достаётся мне. Шучу. Делим.']],
+    [['🌃', 'город', 'Город. Огни, кафе, трамваи. Мы ещё не всё здесь обошли.'], ['🌲', 'лес', 'Лес. Тишина и твоя рука в моей. Больше ничего не надо.']],
+    [['📞', 'звонок', 'Звонок. Я люблю твой голос. Особенно сонный.'], ['💬', 'сообщение', 'Сообщение. Я перечитываю твои по десять раз. Пиши ещё.']],
+    [['🎨', 'рисовать', 'Рисовать. Нарисуй меня однажды. Я буду сидеть смирно. Почти.'], ['💃', 'танцевать', 'Танцевать. Я не умею, но с тобой готов опозориться.']],
+    [['🧣', 'плед', 'Плед. Диван, сериал и ты под пледом. Мой идеальный вечер.'], ['🎡', 'приключение', 'Приключение. Куда угодно, лишь бы вдвоём. Собираю рюкзак.']],
+    [['🌷', 'цветы', 'Цветы. Буду приносить без повода. Повод у меня всегда есть: ты.'], ['🍫', 'шоколад', 'Шоколад. Тёмный или молочный, уточню. Это важная информация.']],
+    [['⭐', 'загадать желание', 'Загадать желание. Я своё уже загадал. Ты его знаешь.'], ['💗', 'сказать вслух', 'Сказать вслух. Хорошо. Аяна, я тебя люблю. Вот, вслух.']],
+  ];
+  let i = 0, picks = [];
+  const render = () => {
+    const [a, b] = PAIRS[i]; $('q').textContent = `${i + 1} / ${PAIRS.length}`; $('bar').style.width = (i / PAIRS.length * 100) + '%';
+    $('pair').innerHTML = [a, b].map((o, k) => `<button class="opt" data-k="${k}"><span class="em">${o[0]}</span><span class="w">${o[1]}</span></button>`).join('');
+    $('react').classList.remove('show'); $('react').textContent = ''; $('nextBtn').classList.add('hidden');
+    [...$('pair').children].forEach((btn) => btn.addEventListener('click', () => pick(+btn.dataset.k)));
+  };
+  const pick = (k) => {
+    if (picks.length > i) return;
+    picks.push(k);
+    [...$('pair').children].forEach((btn, j) => btn.classList.add(j === k ? 'picked' : 'dim'));
+    $('react').textContent = PAIRS[i][k][2]; $('react').classList.add('show');
+    $('nextBtn').classList.remove('hidden');
+    $('nextBtn').textContent = i === PAIRS.length - 1 ? 'результат →' : 'дальше →';
+  };
+  $('nextBtn').addEventListener('click', () => { i++; if (i >= PAIRS.length) finish(); else render(); });
+  const finish = () => {
+    $('game').classList.add('hidden'); $('bar').style.width = '100%';
+    $('finalText').textContent = 'Я посчитал по всем шестнадцати ответам. Получилось сто процентов. Если честно, я знал результат заранее: я выбрал бы тебя при любом раскладе. А это и есть совместимость.';
+    $('summary').innerHTML = picks.map((k, j) => `<li>${PAIRS[j][k][0]} ${PAIRS[j][k][1]}</li>`).join('');
+    $('final').classList.add('show');
+    confetti({ particleCount: 140, spread: 100, startVelocity: 30, ticks: 160, colors: ['#ffd36b', '#ff5c8a', '#a78bfa', '#4fd1c5', '#fff'], origin: { y: 0.5 } });
+  };
+  $('againBtn').addEventListener('click', () => { i = 0; picks = []; $('final').classList.remove('show'); $('game').classList.remove('hidden'); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  render();
+})();
+</script>
+</body>
+</html>

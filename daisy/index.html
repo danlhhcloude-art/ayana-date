@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Гадание на ромашке, в котором все лепестки говорят одно.">
+  <meta name="theme-color" content="#0f1a0c">
+  <title>Ромашка для Аяны</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink: #f7fff2; --muted: #93a98a; --gold: #ffd36b; --rose: #ff5c8a; --green: #6fe3a0; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: #0f1a0c; color: var(--ink); }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(60% 40% at 50% 0%, rgba(255,211,107,.12), transparent 70%), radial-gradient(50% 40% at 50% 100%, rgba(111,227,160,.12), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 22px 14px 60px; text-align: center; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--gold); text-shadow: 0 0 8px rgba(255,211,107,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(24px, 7vw, 34px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px var(--gold), 0 0 30px rgba(255,211,107,.4); }
+    .lead { color: #d8e8d0; font-size: 15px; line-height: 1.55; margin: 0 auto 10px; max-width: 400px; }
+    .field { position: relative; width: min(92vw, 420px); aspect-ratio: 1; margin: 10px auto 0; }
+    svg { width: 100%; height: 100%; overflow: visible; }
+    .petal { cursor: pointer; transform-box: view-box; transform-origin: 200px 200px; transform: rotate(var(--a)); transition: transform .15s; }
+    .petal:hover { transform: rotate(var(--a)) scale(1.04); }
+    .petal.fall { animation: fall 1.4s ease-in forwards; pointer-events: none; }
+    @keyframes fall { 0% { opacity: 1; transform: rotate(var(--a)); } 100% { opacity: 0; transform: translate(var(--dx), 260px) rotate(calc(var(--a) + var(--rot))); } }
+    .say { min-height: 60px; font-family: 'Caveat', cursive; font-size: clamp(26px, 7.5vw, 36px); line-height: 1.15; color: #fff; text-shadow: 0 0 14px rgba(255,211,107,.5); margin: 8px 0; transition: .2s; }
+    .say.pop { animation: pop .35s ease; }
+    @keyframes pop { 50% { transform: scale(1.06); } }
+    .count { font-size: 13px; color: var(--muted); }
+    .final { display: none; margin-top: 10px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,211,107,.35); border-radius: 20px; padding: 20px; box-shadow: 0 0 30px rgba(255,211,107,.15); }
+    .final.show { display: block; animation: rise .6s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .final p { margin: 6px 0; font-size: 16px; line-height: 1.55; color: #eaf5e4; }
+    .final .big { font-family: 'Caveat', cursive; font-size: 40px; color: var(--gold); margin: 0 0 6px; }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
+    .btn.gold { border-color: var(--gold); box-shadow: 0 0 12px rgba(255,211,107,.5); }
+    .foot { color: var(--muted); font-size: 12px; margin-top: 28px; }
+    .foot a { color: var(--rose); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="tag">гадание</div>
+    <h1>Любит, не любит</h1>
+    <p class="lead">Аяна, обрывай лепестки по одному. Ромашка честная. Я проверял.</p>
+    <div class="field"><svg id="svg" viewBox="0 0 400 400"></svg></div>
+    <div class="say" id="say">…</div>
+    <div class="count" id="count"></div>
+    <div class="final" id="final">
+      <div class="big">Все лепестки говорят одно.</div>
+      <p>Гадать не нужно, Аяна. Я нарисовал эту ромашку так, что другого ответа у неё нет. Как и у меня.</p>
+      <p>Люблю.</p>
+      <div class="row"><button class="btn gold" id="againBtn">сорвать ещё одну</button><a class="btn" href="../hub/">другие игры</a></div>
+    </div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a></div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const WORDS = ['любит', 'очень любит', 'любит ещё сильнее', 'любит и скучает', 'любит, даже когда ты сердишься', 'любит по-настоящему', 'любит с первого дня', 'любит и будет любить', 'любит, и это навсегда', 'любит. просто любит', 'любит больше, чем вчера', 'любит так, что смущается', 'любит и не умеет иначе', 'любит каждую твою улыбку', 'любит. я проверял трижды', 'любит и ждёт вечера', 'любит без условий', 'любит. и это не гадание'];
+  const svg = $('svg'); let n = 0, left = 0, picked = 0;
+  const build = () => {
+    svg.innerHTML = ''; picked = 0; $('final').classList.remove('show'); $('say').textContent = 'обрывай лепестки…';
+    n = 13 + Math.floor(Math.random() * 6); left = n;
+    const cx = 200, cy = 200;
+    // стебель
+    const stem = document.createElementNS(NS, 'path'); stem.setAttribute('d', `M${cx} ${cy + 40} q 10 90 -6 160`); stem.setAttribute('stroke', '#5fc98a'); stem.setAttribute('stroke-width', '6'); stem.setAttribute('fill', 'none'); stem.setAttribute('stroke-linecap', 'round'); svg.appendChild(stem);
+    const leaf = document.createElementNS(NS, 'path'); leaf.setAttribute('d', `M${cx + 4} ${cy + 120} q 40 -30 70 -10 q -30 36 -70 10z`); leaf.setAttribute('fill', '#6fe3a0'); svg.appendChild(leaf);
+    const words = WORDS.slice().sort(() => Math.random() - 0.5);
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 - Math.PI / 2;
+      const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'petal'); g.style.setProperty('--a', ((a * 180) / Math.PI + 90) + 'deg');
+      const p = document.createElementNS(NS, 'path'); p.setAttribute('d', `M${cx} ${cy} q -22 -70 0 -150 q 22 80 0 150z`); p.setAttribute('fill', '#ffffff'); p.setAttribute('stroke', 'rgba(0,0,0,.08)');
+      const sh = document.createElementNS(NS, 'path'); sh.setAttribute('d', `M${cx} ${cy - 40} q -8 -40 0 -95 q 8 55 0 95z`); sh.setAttribute('fill', 'rgba(255,211,107,.25)');
+      g.appendChild(p); g.appendChild(sh); g.dataset.w = words[i % words.length]; g.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px'); g.style.setProperty('--rot', (Math.random() * 180 - 90) + 'deg');
+      g.addEventListener('click', () => pluck(g)); svg.appendChild(g);
+    }
+    const core = document.createElementNS(NS, 'circle'); core.setAttribute('cx', cx); core.setAttribute('cy', cy); core.setAttribute('r', 42); core.setAttribute('fill', '#ffd36b'); core.setAttribute('stroke', '#e0a830'); core.setAttribute('stroke-width', '3'); svg.appendChild(core);
+    for (let i = 0; i < 30; i++) { const d = document.createElementNS(NS, 'circle'); const r = Math.sqrt(Math.random()) * 34, a = Math.random() * 6.28; d.setAttribute('cx', cx + Math.cos(a) * r); d.setAttribute('cy', cy + Math.sin(a) * r); d.setAttribute('r', 2.2); d.setAttribute('fill', 'rgba(180,120,20,.5)'); svg.appendChild(d); }
+    $('count').textContent = `лепестков: ${left}`;
+  };
+  const pluck = (g) => {
+    if (g.classList.contains('fall')) return;
+    g.classList.add('fall'); left--; picked++;
+    const say = $('say'); say.textContent = g.dataset.w; say.classList.remove('pop'); void say.offsetWidth; say.classList.add('pop');
+    $('count').textContent = left > 0 ? `лепестков: ${left}` : 'лепестков не осталось';
+    if (left === 0) setTimeout(() => $('final').classList.add('show'), 900);
+  };
+  $('againBtn').addEventListener('click', () => { build(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  build();
+})();
+</script>
+</body>
+</html>

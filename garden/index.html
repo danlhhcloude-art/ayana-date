@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Сад для Аяны: поливай каждый день, и он расцветёт.">
+  <meta name="theme-color" content="#0a1210">
+  <title>Сад для Аяны</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0a1210; --ink: #f1fff6; --muted: #86a393; --rose: #ff5c8a; --gold: #ffd36b; --green: #6fe3a0; --teal: #4fd1c5; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(50% 35% at 50% 0%, rgba(111,227,160,.12), transparent 70%), radial-gradient(40% 30% at 100% 100%, rgba(255,92,138,.08), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 22px 14px 60px; }
+    header { text-align: center; margin-bottom: 14px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--green); text-shadow: 0 0 8px rgba(111,227,160,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(24px, 7vw, 34px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px var(--green), 0 0 30px rgba(111,227,160,.4); }
+    .lead { color: #cfe6d8; font-size: 15px; line-height: 1.55; margin: 0 auto; max-width: 400px; }
+    .scene { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); aspect-ratio: 4 / 5; background: #0c1a16; margin-top: 14px; }
+    canvas { width: 100%; height: 100%; display: block; }
+    .note { position: absolute; left: 14px; right: 14px; top: 14px; background: rgba(255,250,240,.96); color: #2a3a30; border-radius: 14px; padding: 12px 14px; font-family: 'Caveat', cursive; font-size: 21px; line-height: 1.2; box-shadow: 0 10px 24px rgba(0,0,0,.35); opacity: 0; transform: translateY(-8px); transition: .5s; pointer-events: none; }
+    .note.show { opacity: 1; transform: none; }
+    .status { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+    .status b { color: var(--gold); }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 13px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 13px 24px; cursor: pointer; text-decoration: none; transition: .2s; }
+    .btn.water { border-color: var(--teal); box-shadow: 0 0 14px rgba(79,209,197,.5); }
+    .btn.water:disabled { opacity: .45; box-shadow: none; cursor: default; }
+    .btn.water:active:not(:disabled) { transform: scale(.96); }
+    .shelf { display: flex; gap: 8px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+    .shelf span { font-size: 24px; filter: drop-shadow(0 0 6px rgba(255,255,255,.3)); }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+    .foot a { color: var(--rose); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="tag">поливай каждый день</div>
+      <h1>Сад для Аяны</h1>
+      <p class="lead">Я посадил для тебя семечко. Полей его сегодня, и приходи завтра: оно подрастёт. Через несколько дней расцветёт, и я посажу следующее.</p>
+    </header>
+    <div class="scene"><canvas id="cv"></canvas><div class="note" id="note"></div></div>
+    <div class="status"><span id="stage"></span><span id="timer"></span></div>
+    <div class="row"><button class="btn water" id="waterBtn">💧 Полить</button></div>
+    <div class="shelf" id="shelf"></div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a></div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem('ayana.garden.' + k)) ?? d; } catch { return d; } }, set: (k, v) => { try { localStorage.setItem('ayana.garden.' + k, JSON.stringify(v)); } catch {} } };
+  const FLOWERS = [
+    { name: 'тюльпан', em: '🌷', col: '#ff5c8a', col2: '#ff9ab8', kind: 'tulip' },
+    { name: 'ромашка', em: '🌼', col: '#fff', col2: '#ffd36b', kind: 'daisy' },
+    { name: 'роза', em: '🌹', col: '#e0245e', col2: '#ff6b81', kind: 'rose' },
+    { name: 'подсолнух', em: '🌻', col: '#ffd36b', col2: '#8a5a1a', kind: 'daisy' },
+    { name: 'лаванда', em: '💜', col: '#a78bfa', col2: '#c4b5fd', kind: 'tulip' },
+    { name: 'пион', em: '🌸', col: '#ffb3cf', col2: '#ff7fae', kind: 'rose' },
+  ];
+  const STAGE_NAMES = ['семечко', 'росток', 'листья', 'бутон', 'цветок', 'расцвёл'];
+  const NOTES = [
+    ['Семечко в земле. Я тоже когда-то так начинал: тихо и незаметно.', 'Посадил. Теперь главное не торопить. С тобой я научился ждать.', 'Пока ничего не видно. Но я-то знаю, что там внутри. Как и в тебе.'],
+    ['Проклюнулся росток. Первый шаг всегда самый смелый. Как первое «привет».', 'Смотри, зелёное. Это оно тянется к тебе. Я его понимаю.', 'Росток маленький, но упрямый. Напоминает мне кого-то.'],
+    ['Появились листья. Теперь оно умеет ловить свет. Ты мой свет, если что.', 'Два листа. Как два человека, которым хорошо вдвоём.', 'Листья тянутся к окну. Я тянусь к тебе. Всё по законам природы.'],
+    ['Бутон. Ещё закрытый, но уже понятно, что будет красиво.', 'Почти. Ещё один день. Я умею ждать красивое.', 'Бутон держится крепко. Говорит, откроется только для тебя.'],
+    ['Раскрылся. Посмотри, какой. Это всё ты, я только поливал.', 'Цветок. Твой. Я его вырастил из одного «привет».', 'Вот. Теперь в этом саду есть что-то такое же красивое, как ты.'],
+    ['Расцвёл до конца. Поставлю его на полку, а завтра посажу новое. Сад будет большой. Как и всё, что я для тебя планирую.', 'Готово. Один цветок за несколько дней. А я бы хоть каждый день сажал.', 'Полный цвет. Как и я рядом с тобой.'],
+  ];
+  const dayKey = (d = new Date()) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  let S = store.get('state', { flower: 0, stage: 0, lastWater: null, shelf: [] });
+  const save = () => store.set('state', S);
+
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  let W = 0, H = 0, DPR = 1, t = 0, drops = [], sparks = [], growAnim = 0;
+  const resize = () => { const r = cv.getBoundingClientRect(); DPR = Math.min(2, devicePixelRatio || 1); W = r.width; H = r.height; cv.width = W * DPR; cv.height = H * DPR; };
+  addEventListener('resize', resize); resize();
+
+  const F = () => FLOWERS[S.flower % FLOWERS.length];
+  const petal = (c, x, y, rx, ry, rot, col) => { c.save(); c.translate(x, y); c.rotate(rot); c.fillStyle = col; c.beginPath(); c.ellipse(0, -ry * 0.5, rx, ry, 0, 0, 7); c.fill(); c.restore(); };
+  const drawPlant = (c, stage, p) => {
+    // p: 0..1 прогресс анимации роста внутри стадии
+    const f = F(); const baseX = W / 2, baseY = H * 0.78;
+    const maxH = H * 0.5; const stemH = [0, 0.18, 0.4, 0.6, 0.75, 0.8][stage] * maxH * (0.85 + 0.15 * p);
+    const sway = Math.sin(t * 1.2) * 6 * (stemH / maxH);
+    const topX = baseX + sway, topY = baseY - stemH;
+    if (stage === 0) { c.fillStyle = '#5a3a24'; c.beginPath(); c.ellipse(baseX, baseY - 6, 7, 10, 0.3, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.25)'; c.beginPath(); c.ellipse(baseX - 2, baseY - 9, 2, 4, 0.3, 0, 7); c.fill(); return; }
+    c.strokeStyle = '#4caf6e'; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(baseX, baseY); c.quadraticCurveTo(baseX + sway * 0.4, baseY - stemH * 0.5, topX, topY); c.stroke();
+    if (stage >= 1) { const ly = baseY - stemH * 0.3; petal(c, baseX + sway * 0.2, ly, 10, 22, -1.1, '#5fc98a'); }
+    if (stage >= 2) { const ly = baseY - stemH * 0.55; petal(c, baseX + sway * 0.3, ly, 12, 26, 1.0, '#6fe3a0'); petal(c, baseX + sway * 0.25, ly + 30, 9, 20, -1.3, '#5fc98a'); }
+    if (stage === 3) { c.fillStyle = f.col; c.beginPath(); c.ellipse(topX, topY - 10, 10 + 4 * p, 16 + 4 * p, 0, 0, 7); c.fill(); c.fillStyle = '#4caf6e'; c.beginPath(); c.ellipse(topX, topY + 2, 8, 7, 0, 0, 7); c.fill(); }
+    if (stage >= 4) {
+      const open = stage === 5 ? 1 : 0.55 + 0.45 * p; const R = 26 * open + (stage === 5 ? 6 : 0);
+      c.save(); c.shadowBlur = stage === 5 ? 30 : 10; c.shadowColor = f.col;
+      if (f.kind === 'daisy') { for (let i = 0; i < 12; i++) petal(c, topX, topY, 7, R, (i / 12) * Math.PI * 2 + t * 0.05, f.col); c.fillStyle = f.col2; c.beginPath(); c.arc(topX, topY, 11, 0, 7); c.fill(); }
+      else if (f.kind === 'tulip') { for (let i = -1; i <= 1; i++) petal(c, topX + i * 8, topY + 4, 12, R * 1.2, i * 0.35 * open, i === 0 ? f.col2 : f.col); }
+      else { for (let k = 3; k >= 1; k--) for (let i = 0; i < 5 + k; i++) petal(c, topX, topY, 9 * k * 0.5 + 3, R * (0.45 + 0.2 * k), (i / (5 + k)) * Math.PI * 2 + k, k === 1 ? f.col2 : f.col); }
+      c.restore();
+    }
+  };
+  const draw = () => {
+    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0c1f2e'); g.addColorStop(.6, '#163b3a'); g.addColorStop(1, '#0c1a16'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    // окно и луна
+    ctx.fillStyle = 'rgba(255,255,255,.04)'; ctx.fillRect(W * 0.12, H * 0.08, W * 0.76, H * 0.52); ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 3; ctx.strokeRect(W * 0.12, H * 0.08, W * 0.76, H * 0.52); ctx.beginPath(); ctx.moveTo(W / 2, H * 0.08); ctx.lineTo(W / 2, H * 0.6); ctx.moveTo(W * 0.12, H * 0.34); ctx.lineTo(W * 0.88, H * 0.34); ctx.stroke();
+    ctx.fillStyle = '#fff3dc'; ctx.shadowBlur = 30; ctx.shadowColor = '#fff3dc'; ctx.beginPath(); ctx.arc(W * 0.72, H * 0.2, 16, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff'; for (let i = 0; i < 40; i++) { const x = W * 0.12 + ((i * 97) % 100) / 100 * W * 0.76, y = H * 0.08 + ((i * 53) % 100) / 100 * H * 0.5; ctx.globalAlpha = 0.3 + 0.5 * Math.abs(Math.sin(t + i)); ctx.fillRect(x, y, 1.5, 1.5); } ctx.globalAlpha = 1;
+    // подоконник и горшок
+    ctx.fillStyle = '#2b2a3a'; ctx.fillRect(0, H * 0.8, W, H * 0.04); ctx.fillStyle = '#1b1a28'; ctx.fillRect(0, H * 0.84, W, H);
+    ctx.fillStyle = '#b5583a'; ctx.beginPath(); ctx.moveTo(W / 2 - 46, H * 0.8); ctx.lineTo(W / 2 + 46, H * 0.8); ctx.lineTo(W / 2 + 36, H * 0.72); ctx.lineTo(W / 2 - 36, H * 0.72); ctx.closePath(); ctx.fill(); // перевёрнутый, но земля закроет
+    ctx.fillStyle = '#c96a48'; ctx.beginPath(); ctx.roundRect(W / 2 - 52, H * 0.74, 104, 24, 6); ctx.fill();
+    ctx.fillStyle = '#cf6e4c'; ctx.beginPath(); ctx.moveTo(W / 2 - 48, H * 0.74 + 24); ctx.lineTo(W / 2 + 48, H * 0.74 + 24); ctx.lineTo(W / 2 + 40, H * 0.8 + 2); ctx.lineTo(W / 2 - 40, H * 0.8 + 2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#3a2a1e'; ctx.beginPath(); ctx.ellipse(W / 2, H * 0.78, 44, 8, 0, 0, 7); ctx.fill();
+    drawPlant(ctx, S.stage, Math.min(1, growAnim));
+    // капли и искры
+    ctx.fillStyle = '#8fd3ff'; for (const d of drops) { ctx.globalAlpha = d.life; ctx.beginPath(); ctx.ellipse(d.x, d.y, 2.5, 5, 0, 0, 7); ctx.fill(); d.y += d.vy; d.vy += 0.3; d.life -= 0.02; } ctx.globalAlpha = 1; drops = drops.filter((d) => d.life > 0);
+    for (const s of sparks) { ctx.globalAlpha = s.life; ctx.fillStyle = s.col; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill(); s.x += s.vx; s.y += s.vy; s.life -= 0.02; } ctx.globalAlpha = 1; sparks = sparks.filter((s) => s.life > 0);
+    ctx.restore();
+  };
+  const loop = () => { t += 0.016; growAnim += 0.02; draw(); requestAnimationFrame(loop); };
+
+  const canWater = () => S.lastWater !== dayKey();
+  const update = () => {
+    const f = F();
+    $('stage').innerHTML = `${f.em} ${f.name} · <b>${STAGE_NAMES[S.stage]}</b>`;
+    $('waterBtn').disabled = !canWater() || S.stage >= 5;
+    $('shelf').innerHTML = S.shelf.map((i) => `<span title="${FLOWERS[i % FLOWERS.length].name}">${FLOWERS[i % FLOWERS.length].em}</span>`).join('');
+    const n = new Date(); n.setHours(24, 0, 0, 0); const s = Math.max(0, Math.floor((n - Date.now()) / 1000)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+    $('timer').textContent = S.stage >= 5 ? 'новое семечко завтра' : canWater() ? 'можно полить сегодня' : `следующий полив через ${h} ч ${String(m).padStart(2, '0')} мин`;
+  };
+  const showNote = (text) => { $('note').textContent = text; $('note').classList.add('show'); clearTimeout(showNote.t); showNote.t = setTimeout(() => $('note').classList.remove('show'), 6500); };
+  $('waterBtn').addEventListener('click', () => {
+    if (!canWater() || S.stage >= 5) return;
+    for (let i = 0; i < 26; i++) drops.push({ x: W / 2 + (Math.random() - 0.5) * 70, y: H * 0.3 + Math.random() * 60, vy: 1 + Math.random() * 2, life: 1 });
+    setTimeout(() => {
+      S.stage = Math.min(5, S.stage + 1); S.lastWater = dayKey(); growAnim = 0; save();
+      for (let i = 0; i < 30; i++) { const a = Math.random() * 6.28; sparks.push({ x: W / 2, y: H * 0.5, vx: Math.cos(a) * 2, vy: Math.sin(a) * 2 - 1, life: 1, r: 1.5 + Math.random() * 2, col: ['#ffd36b', '#fff', F().col][i % 3] }); }
+      showNote(NOTES[S.stage][Math.floor(Math.random() * 3)]);
+      update();
+    }, 700);
+  });
+  // если цветок расцвёл и наступил новый день, ставим его на полку и сажаем новое
+  if (S.stage >= 5 && S.lastWater !== dayKey()) { S.shelf.push(S.flower); S.flower++; S.stage = 0; S.lastWater = null; save(); setTimeout(() => showNote(`Вчерашний цветок на полке. Сегодня сажаю ${F().name}. Полей его.`), 600); }
+  else if (S.stage === 0 && S.lastWater === null) setTimeout(() => showNote('Семечко уже в земле. Нажми «Полить».'), 600);
+  update(); setInterval(update, 30000); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

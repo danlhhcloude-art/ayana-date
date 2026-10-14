@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="description" content="Соедини звёзды по порядку и открой созвездия, которые я назвал в честь тебя.">
+  <meta name="theme-color" content="#04040f">
+  <title>Созвездия Аяны</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink: #f3ecff; --muted: #9d94c7; --gold: #ffd36b; --rose: #ff5c8a; --cyan: #5ee6ff; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; background: #04040f; color: var(--ink); overflow: hidden; }
+    body { font-family: 'Manrope', system-ui, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    #top { position: fixed; top: 0; left: 0; right: 0; z-index: 5; padding: 14px 18px; text-align: center; pointer-events: none; }
+    #top .k { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+    #top .n { font-family: 'Caveat', cursive; font-size: 30px; color: #fff; margin-top: 2px; text-shadow: 0 0 12px rgba(255,255,255,.5); }
+    #top .h { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    #cap { position: fixed; left: 20px; right: 20px; bottom: 90px; z-index: 5; text-align: center; font-family: 'Caveat', cursive; font-size: 26px; line-height: 1.2; color: #fff; text-shadow: 0 0 12px rgba(255,211,107,.6), 0 2px 8px rgba(0,0,0,.8); opacity: 0; transform: translateY(8px); transition: .6s; pointer-events: none; }
+    #cap.show { opacity: 1; transform: none; }
+    #bottom { position: fixed; left: 0; right: 0; bottom: 18px; z-index: 6; text-align: center; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: rgba(4,4,15,.6); border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; display: inline-block; margin: 4px; backdrop-filter: blur(6px); }
+    .btn.gold { border-color: var(--gold); box-shadow: 0 0 12px rgba(255,211,107,.5); }
+    .hidden { display: none !important; }
+    .overlay { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 24px 20px; text-align: center; background: rgba(4,4,15,.6); backdrop-filter: blur(4px); }
+    .overlay.show { display: flex; animation: fadeIn .7s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .panel { max-width: 420px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 11px; letter-spacing: .35em; text-transform: uppercase; color: var(--cyan); text-shadow: 0 0 10px var(--cyan); margin-bottom: 14px; }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(26px, 8vw, 40px); margin: 0 0 10px; color: #fff; text-shadow: 0 0 10px var(--gold), 0 0 30px rgba(255,211,107,.5); }
+    .lead { font-size: 16px; line-height: 1.55; color: #d9d2f5; margin: 0 0 8px; }
+    .hint { font-size: 13px; color: var(--muted); margin: 14px 0 24px; line-height: 1.5; }
+    .big { border-color: var(--gold); box-shadow: 0 0 12px rgba(255,211,107,.5); font-size: 14px; padding: 14px 28px; }
+  </style>
+</head>
+<body>
+  <canvas id="cv"></canvas>
+  <div id="top"><div class="k" id="k"></div><div class="n" id="name"></div><div class="h" id="hint"></div></div>
+  <div id="cap"></div>
+  <div id="bottom"><button class="btn gold hidden" id="nextBtn">следующее созвездие →</button></div>
+
+  <div class="overlay show" id="intro">
+    <div class="panel">
+      <div class="tag">ночное небо · по точкам</div>
+      <h1>Созвездия Аяны</h1>
+      <p class="lead">Я придумал несколько созвездий и назвал их в честь тебя. Астрономы пока не в курсе.</p>
+      <p class="hint">Соединяй звёзды по порядку: следующая мигает. Когда соединишь все, созвездие зажжётся и расскажет, почему оно твоё.</p>
+      <button class="btn big" id="startBtn">Посмотреть на небо</button>
+    </div>
+  </div>
+  <div class="overlay" id="end">
+    <div class="panel">
+      <div class="tag">всё небо</div>
+      <h1>Семь созвездий</h1>
+      <p class="lead">Все они теперь твои. Когда будешь смотреть на ночное небо, знай: где-то там я их для тебя расставил.</p>
+      <button class="btn big" id="againBtn">Ещё раз</button><a class="btn" href="../hub/">Другие игры</a>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  let W = 0, H = 0, DPR = 1, t = 0;
+  const resize = () => { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; bg = []; for (let i = 0; i < 180; i++) bg.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.6 + 0.3, ph: Math.random() * 6, sp: 0.5 + Math.random() * 2 }); };
+  let bg = []; addEventListener('resize', resize); resize();
+
+  // точки в координатах 0..1 внутри квадрата, соединяются по порядку
+  const SETS = [
+    { name: 'Сердце Аяны', pts: [[0.5, 0.3], [0.32, 0.16], [0.14, 0.3], [0.14, 0.5], [0.5, 0.86], [0.86, 0.5], [0.86, 0.3], [0.68, 0.16]], close: true, cap: 'Первое созвездие. Самое очевидное. Я не стал оригинальничать: так я к тебе отношусь.' },
+    { name: 'Зонт на двоих', pts: [[0.12, 0.5], [0.3, 0.3], [0.5, 0.2], [0.7, 0.3], [0.88, 0.5], [0.5, 0.5], [0.5, 0.82], [0.6, 0.9]], close: false, cap: 'Под ним мы ловили звёзды в первой игре. Теперь он сам на небе.' },
+    { name: 'Самолётик', pts: [[0.5, 0.12], [0.86, 0.72], [0.6, 0.6], [0.5, 0.84], [0.4, 0.6], [0.14, 0.72]], close: true, cap: 'Бумажный, но долетел. С буквами, которые ты собирала.' },
+    { name: 'Кот, который смотрит на тебя', pts: [[0.25, 0.2], [0.3, 0.42], [0.5, 0.48], [0.7, 0.42], [0.75, 0.2], [0.64, 0.33], [0.36, 0.33]], close: true, cap: 'Коты не любят всех подряд. Этот выбрал тебя. Я его понимаю.' },
+    { name: 'Чашка кофе', pts: [[0.2, 0.3], [0.2, 0.7], [0.3, 0.8], [0.6, 0.8], [0.7, 0.7], [0.7, 0.3], [0.86, 0.4], [0.86, 0.6], [0.7, 0.62]], close: false, cap: 'Утренняя. Горячая. На двоих. Я помню, что ты выбрала в «Что бы ты выбрала».' },
+    { name: 'Письмо', pts: [[0.12, 0.25], [0.88, 0.25], [0.88, 0.75], [0.12, 0.75], [0.12, 0.25], [0.5, 0.55], [0.88, 0.25]], close: false, cap: 'То самое, которое я переписывал три дня. Оно здесь, на небе, навсегда.' },
+    { name: 'Аяна', pts: [[0.1, 0.8], [0.2, 0.2], [0.3, 0.8], [0.25, 0.5], [0.15, 0.5], [0.45, 0.8], [0.45, 0.2], [0.6, 0.2], [0.6, 0.5], [0.45, 0.5], [0.75, 0.8], [0.75, 0.2], [0.9, 0.8]], close: false, cap: 'Последнее. Твоё имя, написанное звёздами. Теперь ты точно на небе.' },
+  ];
+  const G = { phase: 'intro', idx: 0, next: 0, stars: [], done: false, parts: [], shake: 0, glow: 0 };
+  const setup = (i) => {
+    const s = SETS[i]; const size = Math.min(W * 0.84, H * 0.56); const ox = (W - size) / 2, oy = H * 0.2 + (H * 0.56 - size) / 2;
+    G.stars = s.pts.map(([x, y]) => ({ x: ox + x * size, y: oy + y * size }));
+    G.next = 0; G.done = false; G.glow = 0;
+    $('k').textContent = `созвездие ${i + 1} из ${SETS.length}`; $('name').textContent = s.name; $('hint').textContent = 'соедини звёзды по порядку';
+    $('cap').classList.remove('show'); $('nextBtn').classList.add('hidden');
+  };
+  const start = () => { G.phase = 'play'; G.idx = 0; $('intro').classList.remove('show'); $('end').classList.remove('show'); setup(0); };
+  $('startBtn').addEventListener('click', start); $('againBtn').addEventListener('click', start);
+  $('nextBtn').addEventListener('click', () => { G.idx++; if (G.idx >= SETS.length) { G.phase = 'end'; $('end').classList.add('show'); } else setup(G.idx); });
+
+  const burst = (x, y, n, col) => { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, s = 0.5 + Math.random() * 3; G.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, col, r: 1 + Math.random() * 2.5 }); } };
+  cv.addEventListener('pointerdown', (e) => {
+    if (G.phase !== 'play' || G.done) return;
+    const hit = G.stars.findIndex((s) => Math.hypot(s.x - e.clientX, s.y - e.clientY) < 34);
+    if (hit < 0) return;
+    const s = SETS[G.idx];
+    // в созвездии-имени точки могут повторяться, поэтому сверяем по позиции в порядке, а не по индексу звезды
+    const want = G.stars[G.next];
+    if (Math.hypot(G.stars[hit].x - want.x, G.stars[hit].y - want.y) < 1) {
+      G.next++; burst(want.x, want.y, 16, '#ffd36b');
+      if (G.next >= G.stars.length) { G.done = true; G.glow = 1; $('hint').textContent = ''; $('cap').textContent = s.cap; $('cap').classList.add('show'); $('nextBtn').classList.remove('hidden'); $('nextBtn').textContent = G.idx === SETS.length - 1 ? 'посмотреть всё небо →' : 'следующее созвездие →'; burst(W / 2, H * 0.45, 80, '#fff'); }
+    } else { G.shake = 1; $('hint').textContent = 'не та звезда, смотри, какая мигает'; }
+  });
+
+  const star = (x, y, r, col) => { ctx.save(); ctx.shadowBlur = r * 3; ctx.shadowColor = col; ctx.fillStyle = col; ctx.beginPath(); for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * 0.45 : r; const a = (i * Math.PI) / 5 - Math.PI / 2; ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } ctx.closePath(); ctx.fill(); ctx.restore(); };
+  const loop = () => {
+    t += 0.016; ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    if (G.shake > 0) { ctx.translate((Math.random() - 0.5) * 8 * G.shake, (Math.random() - 0.5) * 8 * G.shake); G.shake = Math.max(0, G.shake - 0.08); }
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#04040f'); g.addColorStop(1, '#141033'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff'; for (const s of bg) { ctx.globalAlpha = 0.3 + 0.6 * Math.abs(Math.sin(t * s.sp + s.ph)); ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill(); } ctx.globalAlpha = 1;
+    ctx.fillStyle = '#0a0a1e'; for (let i = 0; i < 24; i++) { const x = (i / 24) * W; const h = 30 + ((i * 37) % 60); ctx.fillRect(x, H - h, W / 24 + 1, h); }
+    if (G.phase === 'play') {
+      const st = G.stars, s = SETS[G.idx];
+      // линии
+      ctx.strokeStyle = G.done ? 'rgba(255,211,107,.9)' : 'rgba(255,255,255,.6)'; ctx.lineWidth = G.done ? 2.5 : 1.5; ctx.shadowBlur = G.done ? 18 : 6; ctx.shadowColor = '#ffd36b';
+      ctx.beginPath(); for (let i = 0; i < G.next; i++) i ? ctx.lineTo(st[i].x, st[i].y) : ctx.moveTo(st[i].x, st[i].y); if (G.done && s.close) ctx.lineTo(st[0].x, st[0].y); ctx.stroke(); ctx.shadowBlur = 0;
+      // резиновая линия к следующей
+      if (!G.done && G.next > 0) { ctx.setLineDash([4, 8]); ctx.strokeStyle = 'rgba(94,230,255,.35)'; ctx.beginPath(); ctx.moveTo(st[G.next - 1].x, st[G.next - 1].y); ctx.lineTo(st[G.next].x, st[G.next].y); ctx.stroke(); ctx.setLineDash([]); }
+      // звёзды
+      st.forEach((p, i) => { const lit = i < G.next || G.done; const isNext = !G.done && i === G.next; const r = lit ? 9 : 6; star(p.x, p.y, isNext ? 10 + Math.sin(t * 6) * 3 : r, lit ? '#ffe9a8' : isNext ? '#5ee6ff' : '#8f87b8'); if (isNext) { ctx.strokeStyle = `rgba(94,230,255,${0.5 + 0.5 * Math.sin(t * 6)})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x, p.y, 22 + Math.sin(t * 6) * 4, 0, 7); ctx.stroke(); } });
+      if (G.done) { G.glow = Math.max(0.4, G.glow - 0.005); const cx = st.reduce((a, p) => a + p.x, 0) / st.length, cy = st.reduce((a, p) => a + p.y, 0) / st.length; const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.5); rg.addColorStop(0, `rgba(255,211,107,${0.18 * G.glow})`); rg.addColorStop(1, 'rgba(255,211,107,0)'); ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H); }
+    }
+    for (const p of G.parts) { ctx.globalAlpha = p.life; ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); p.x += p.vx; p.y += p.vy; p.vy += 0.02; p.life -= 0.02; } ctx.globalAlpha = 1; G.parts = G.parts.filter((p) => p.life > 0);
+    ctx.restore(); requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
