@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Почта для Аяны: каждый день приходит новая открытка.">
+  <meta name="theme-color" content="#0a0a14">
+  <title>Почта для Аяны</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0a0a14; --ink: #f6f1ff; --muted: #8f8aaa; --rose: #ff5c8a; --gold: #ffd36b; --violet: #a78bfa; --teal: #4fd1c5; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(50% 35% at 50% 0%, rgba(255,211,107,.12), transparent 70%), radial-gradient(40% 30% at 0% 100%, rgba(255,92,138,.10), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 22px 14px 60px; }
+    header { text-align: center; margin-bottom: 16px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--gold); text-shadow: 0 0 8px rgba(255,211,107,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(24px, 7vw, 36px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px var(--rose), 0 0 30px rgba(255,92,138,.5); }
+    .lead { color: #cfc9e2; font-size: 15px; line-height: 1.55; margin: 0 auto; max-width: 420px; }
+    .next { margin-top: 12px; font-size: 13px; color: var(--muted); }
+    .next b { color: var(--teal); font-variant-numeric: tabular-nums; }
+
+    .viewer { display: none; margin-bottom: 18px; }
+    .viewer.show { display: block; animation: rise .6s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .card { border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); background: #000; }
+    canvas#card { width: 100%; display: block; }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
+    .btn.gold { border-color: var(--gold); box-shadow: 0 0 12px rgba(255,211,107,.5); }
+
+    .inbox h2 { font-family: 'Unbounded', sans-serif; font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin: 18px 0 12px; text-align: center; }
+    .list { display: grid; gap: 10px; }
+    .env { display: flex; align-items: center; gap: 14px; background: linear-gradient(160deg, #171430, #110e22); border: 1px solid rgba(255,255,255,.07); border-radius: 18px; padding: 12px 14px; cursor: pointer; transition: .2s; position: relative; }
+    .env:hover { transform: translateY(-2px); border-color: rgba(255,211,107,.5); }
+    .env .ic { width: 54px; height: 40px; border-radius: 8px; flex: none; position: relative; background: linear-gradient(160deg, #ffe9c0, #ffcfa0); overflow: hidden; }
+    .env .ic::before { content: ''; position: absolute; inset: 0; background: linear-gradient(160deg, #ffd9a8, #ffb98a); clip-path: polygon(0 0, 100% 0, 50% 60%); }
+    .env .ic::after { content: '💗'; position: absolute; right: 4px; bottom: 2px; font-size: 12px; }
+    .env.opened .ic { filter: grayscale(.4) brightness(.85); }
+    .env .t { flex: 1; min-width: 0; }
+    .env .t b { display: block; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .env .t span { font-size: 12px; color: var(--muted); }
+    .env .new { font-family: 'Unbounded', sans-serif; font-size: 9px; letter-spacing: .2em; color: #221; background: var(--gold); border-radius: 999px; padding: 4px 8px; box-shadow: 0 0 10px rgba(255,211,107,.7); animation: pulse 1.4s infinite; }
+    @keyframes pulse { 50% { transform: scale(1.06); } }
+    .env.locked { opacity: .45; cursor: default; }
+    .env.locked .ic { filter: grayscale(1) brightness(.5); }
+    .env.locked:hover { transform: none; border-color: rgba(255,255,255,.07); }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+    .foot a { color: var(--rose); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="tag">почта</div>
+      <h1>Открытки для Аяны</h1>
+      <p class="lead">Каждый день сюда приходит одна открытка от меня. Не больше. Чтобы ты успевала их читать, а я успевал их писать.</p>
+      <div class="next" id="next"></div>
+    </header>
+
+    <div class="viewer" id="viewer">
+      <div class="card"><canvas id="card"></canvas></div>
+      <div class="row"><button class="btn gold" id="saveBtn">сохранить открытку</button><button class="btn" id="closeBtn">к списку</button></div>
+    </div>
+
+    <div class="inbox">
+      <h2>входящие</h2>
+      <div class="list" id="list"></div>
+    </div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a></div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const START = new Date(2026, 9, 14); // первая открытка: 14 октября 2026
+  const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem('ayana.post.' + k)) ?? d; } catch { return d; } }, set: (k, v) => { try { localStorage.setItem('ayana.post.' + k, JSON.stringify(v)); } catch {} } };
+  const mulberry = (s) => () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const pick = (a, r) => a[Math.floor(r() * a.length)];
+  const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+  const fmt = (d) => `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+
+  /* ---------- тексты ---------- */
+  const TEXTS = [
+    'Аяна, это первая открытка. Я долго думал, с чего начать, и понял: с самого простого. Я думаю о тебе. Вот и всё.',
+    'Сегодня утром я проснулся и первой мыслью было твоё имя. Это уже второй день подряд. Кажется, это надолго.',
+    'Знаешь, что я заметил? Когда ты рядом, я говорю тише. Не потому что стесняюсь. Потому что хочется, чтобы ты наклонилась ближе.',
+    'Сегодня ничего особенного не случилось. Но я подумал о тебе раз двадцать. Значит, день всё-таки был особенный.',
+    'Если бы можно было отправить тебе погоду, я бы отправил тот вечер, когда мы впервые долго говорили. Там было очень тепло.',
+    'Я не умею писать красиво. Но я умею писать честно. Честно: ты лучшее, что есть в моих днях.',
+    'Аяна, у тебя очень красивое имя. Я проверял: его хочется повторять. Аяна. Аяна. Вот, опять.',
+    'Я сегодня улыбнулся незнакомому человеку на улице просто потому, что подумал о тебе. Человек растерялся. Я нет.',
+    'Иногда мне кажется, что я слишком много тебе пишу. Потом я вспоминаю, что это всего одна открытка в день, и успокаиваюсь.',
+    'Ты не обязана отвечать на эти открытки. Я их пишу не для ответа. Я их пишу, потому что не могу не писать.',
+    'Сегодня шёл дождь, и я подумал: было бы здорово промокнуть вместе. Это, наверное, самое странное признание в любви. Но оно моё.',
+    'Я бы хотел знать, как ты пьёшь чай. С сахаром или без. Горячий или подождав. Это важно. Я запомню.',
+    'Если тебе сегодня грустно, вот тебе моё плечо. Оно, правда, на расстоянии. Но я очень сильно о нём думаю.',
+    'Я пересчитал: если писать тебе по открытке в день, мне хватит слов на несколько лет. Потом придумаю ещё.',
+    'Ты, наверное, не замечаешь, как смеёшься. А я замечаю. Каждый раз. И каждый раз немного теряюсь.',
+    'Я сегодня видел закат и первым делом подумал: Аяна бы оценила. Поэтому вот он, на этой открытке. Нарисовал, как смог.',
+    'Люди говорят «я скучаю» слишком часто. Я скажу иначе: без тебя день какой-то недоделанный.',
+    'Аяна, у меня к тебе просьба. Береги себя. Это единственное, что я прошу. Всё остальное я беру на себя.',
+    'Хочу, чтобы ты знала: я не идеальный. Но рядом с тобой я стараюсь. А это, кажется, важнее.',
+    'Сегодня я ничего не буду говорить. Просто посмотри на картинку. Я её сделал для тебя. Вот и весь текст.',
+    'Я не знаю, что будет через год. Но я точно знаю, кого хочу видеть рядом, когда это «через год» наступит.',
+    'Мне нравится, как ты говоришь «ладно». Как будто соглашаешься не с миром, а со мной. Может, это я себе придумал. Пусть.',
+    'Ты как-то сказала одну фразу, и я до сих пор её помню. Не скажу какую. Пусть будет мой секрет на сегодня.',
+    'Если бы я был поэтом, я бы написал о тебе стихи. Но я тот, кто я есть. Поэтому вот открытка, нарисованная кодом. Зато от души.',
+    'Сегодня очень простая открытка: я тебя люблю. Три слова. Я их долго собирал. Теперь они твои.',
+    'Я думаю, в каждом дне есть минута, которая принадлежит только тебе. У меня это та, когда я пишу тебе это.',
+    'Аяна, если ты читаешь это ночью, иди спать. Если утром, хорошего дня. Если днём, то я сейчас тоже о тебе думаю.',
+    'Я не хочу быть самым главным в твоей жизни. Я хочу быть самым надёжным. Это другое. Это лучше.',
+    'Знаешь, что самое смешное? Я репетирую фразы, чтобы сказать тебе, а потом говорю совсем другое. И это другое всегда лучше.',
+    'Ты, наверное, думаешь, что эти открытки пишутся сами. Нет. Над каждой я сижу. Над этой особенно долго.',
+    'Хочу однажды просто молчать рядом с тобой. И чтобы это было самое уютное молчание на свете.',
+    'Я сегодня решил, что буду любить тебя не за что-то, а просто так. Так честнее. И надёжнее.',
+    'Если у тебя сегодня плохой день, пусть эта открытка будет маленьким хорошим. Я старался.',
+    'Я тут понял: мне нравится не только ты. Мне нравится, кем я становлюсь рядом с тобой. Спокойнее. Добрее. Лучше.',
+    'Аяна, я не обещаю тебе звёзд с неба. Я уже подстроил семь в первой игре. Остальное построим вместе.',
+    'Сегодня просто захотелось сказать «спасибо». За то, что ты есть. Даже если это звучит как открытка. Это и есть открытка.',
+    'Я помню, как ты в первый раз на меня посмотрела. Ты, наверное, не помнишь. А я проверяю эту картинку в голове каждый день.',
+    'Ты можешь не верить, что кто-то может писать тебе каждый день. Я и сам не верил. Это уже какой день? Вот именно.',
+    'Иногда любовь — это громко. А иногда это тихая открытка утром. Я за второе. Но если надо, могу и громко.',
+    'Аяна, впереди ещё много открыток. Эта просто одна из них. Но каждая будет про одно и то же. Про тебя.',
+  ];
+  const OPENERS = ['Аяна,', 'Доброе утро, Аяна.', 'Привет.', 'Это снова я.', 'Аяна, маленькая открытка:'];
+  const BODIES = [
+    'сегодня я подумал о тебе раньше, чем о кофе. Это серьёзно.',
+    'я не знаю, какая у тебя погода, но у меня внутри тепло. Из-за тебя.',
+    'есть вещи, которые не надоедают. Твоё имя в их числе.',
+    'если бы дни можно было подписывать, этот я подписал бы твоим именем.',
+    'я всё ещё не нашёл слова лучше, чем «люблю». Пользуюсь этим.',
+    'сегодня ничего не прошу. Просто будь. Этого достаточно.',
+    'мир большой, а я всё равно смотрю в одну сторону. В твою.',
+    'я бы хотел, чтобы ты улыбнулась прямо сейчас. Получилось? Хоть немного?',
+    'иногда достаточно одной открытки, чтобы день стал правильным. Надеюсь, это она.',
+    'ты в моих мыслях как закладка в книге: всегда на нужной странице.',
+  ];
+  const CLOSERS = ['Я рядом.', 'Береги себя.', 'До завтра.', 'Твой.', 'Это всё, что я хотел сказать сегодня.', 'Люблю.'];
+  const textFor = (i) => { if (i < TEXTS.length) return TEXTS[i]; const r = mulberry(i * 101 + 7); return `${pick(OPENERS, r)} ${pick(BODIES, r)} ${pick(CLOSERS, r)}`; };
+
+  /* ---------- открытки на canvas ---------- */
+  const cv = $('card'), ctx = cv.getContext('2d');
+  const CW = 900, CH = 600;
+  const STYLES = ['sunset', 'stars', 'rain', 'flowers', 'waves', 'snow', 'hearts', 'lanterns'];
+  const paintArt = (c, style, r) => {
+    const W = CW, H = CH;
+    const grad = (stops) => { const g = c.createLinearGradient(0, 0, 0, H); stops.forEach(([p, col]) => g.addColorStop(p, col)); c.fillStyle = g; c.fillRect(0, 0, W, H); };
+    if (style === 'sunset') {
+      grad([[0, '#2b1546'], [.5, '#c2416b'], [.78, '#ff9a5c'], [1, '#ffd36b']]);
+      c.fillStyle = '#fff0b8'; c.beginPath(); c.arc(W * (0.3 + r() * 0.4), H * 0.66, 70, 0, 7); c.fill();
+      c.fillStyle = '#2a1030'; for (let i = 0; i < 12; i++) { const x = r() * W, y = H * (0.15 + r() * 0.35), s = 6 + r() * 10; c.beginPath(); c.moveTo(x - s, y); c.quadraticCurveTo(x - s / 2, y - s / 2, x, y); c.quadraticCurveTo(x + s / 2, y - s / 2, x + s, y); c.lineWidth = 2; c.strokeStyle = '#2a1030'; c.stroke(); }
+      c.fillStyle = '#2a1030'; c.fillRect(0, H * 0.74, W, H); for (let i = 0; i < 30; i++) { const x = r() * W, h = 20 + r() * 90; c.fillRect(x, H * 0.74 - h, 10 + r() * 30, h); }
+    } else if (style === 'stars') {
+      grad([[0, '#05051a'], [1, '#1c1240']]);
+      c.fillStyle = '#fff'; for (let i = 0; i < 260; i++) { c.globalAlpha = 0.3 + r() * 0.7; c.beginPath(); c.arc(r() * W, r() * H * 0.8, r() * 2, 0, 7); c.fill(); } c.globalAlpha = 1;
+      c.fillStyle = '#fff3dc'; c.shadowBlur = 40; c.shadowColor = '#fff3dc'; c.beginPath(); c.arc(W * (0.2 + r() * 0.6), H * 0.25, 40, 0, 7); c.fill(); c.shadowBlur = 0;
+      const pts = []; for (let i = 0; i < 7; i++) pts.push([W * (0.3 + r() * 0.4), H * (0.3 + r() * 0.35)]);
+      c.strokeStyle = 'rgba(255,211,107,.6)'; c.lineWidth = 1.5; c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(...p) : c.moveTo(...p))); c.stroke();
+      c.fillStyle = '#ffe9a8'; c.shadowBlur = 14; c.shadowColor = '#ffd36b'; pts.forEach((p) => { c.beginPath(); c.arc(p[0], p[1], 4, 0, 7); c.fill(); }); c.shadowBlur = 0;
+      c.fillStyle = '#0a0a1c'; for (let i = 0; i < 40; i++) { const x = (i / 40) * W, h = 30 + r() * 80; c.fillRect(x, H - h, W / 40 + 1, h); }
+    } else if (style === 'rain') {
+      grad([[0, '#0b0f24'], [1, '#2a1a44']]);
+      for (let i = 0; i < 40; i++) { c.globalAlpha = 0.25 + r() * 0.4; c.fillStyle = ['#ffb648', '#ff5c8a', '#4fd1c5', '#a78bfa', '#fff'][i % 5]; c.beginPath(); c.arc(r() * W, r() * H * 0.8, 14 + r() * 50, 0, 7); c.fill(); } c.globalAlpha = 1;
+      c.strokeStyle = 'rgba(200,220,255,.4)'; c.lineWidth = 1.5; for (let i = 0; i < 160; i++) { const x = r() * W, y = r() * H; c.beginPath(); c.moveTo(x, y); c.lineTo(x - 6, y + 26); c.stroke(); }
+      c.fillStyle = 'rgba(255,255,255,.08)'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#0a0a18'; c.beginPath(); c.ellipse(W * 0.5, H * 0.95, 70, 22, 0, 0, 7); c.fill();
+    } else if (style === 'flowers') {
+      grad([[0, '#fff1f6'], [1, '#ffd0e5']]);
+      for (let i = 0; i < 36; i++) { const x = r() * W, y = r() * H, s = 10 + r() * 22, col = ['#ff5c8a', '#ff8fb3', '#ffb648', '#a78bfa', '#ff6b81'][i % 5]; c.save(); c.translate(x, y); c.rotate(r() * 6); c.fillStyle = col; for (let k = 0; k < 5; k++) { c.beginPath(); c.ellipse(0, -s * 0.6, s * 0.35, s * 0.6, 0, 0, 7); c.fill(); c.rotate(Math.PI * 2 / 5); } c.fillStyle = '#fff3b0'; c.beginPath(); c.arc(0, 0, s * 0.25, 0, 7); c.fill(); c.restore(); }
+      c.strokeStyle = 'rgba(80,140,90,.5)'; c.lineWidth = 3; for (let i = 0; i < 14; i++) { const x = r() * W; c.beginPath(); c.moveTo(x, H); c.quadraticCurveTo(x + 20, H * 0.7, x - 10, H * 0.5); c.stroke(); }
+    } else if (style === 'waves') {
+      grad([[0, '#0b2a4a'], [.55, '#0e6f8f'], [1, '#4fd1c5']]);
+      c.fillStyle = '#fff3dc'; c.beginPath(); c.arc(W * 0.75, H * 0.2, 36, 0, 7); c.fill();
+      for (let i = 0; i < 9; i++) { c.strokeStyle = `rgba(255,255,255,${0.15 + i * 0.05})`; c.lineWidth = 3; c.beginPath(); for (let x = 0; x <= W; x += 10) { const y = H * (0.5 + i * 0.055) + Math.sin(x / 40 + i + r() * 0.2) * 8; x ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke(); }
+      c.strokeStyle = 'rgba(255,243,220,.5)'; c.lineWidth = 2; for (let i = 0; i < 30; i++) { const y = H * (0.5 + r() * 0.45); c.beginPath(); c.moveTo(W * 0.75 - r() * 40, y); c.lineTo(W * 0.75 + r() * 40, y); c.stroke(); }
+    } else if (style === 'snow') {
+      grad([[0, '#0a0f24'], [1, '#2b3560']]);
+      const lx = W * 0.5; const g = c.createRadialGradient(lx, 120, 0, lx, 120, 420); g.addColorStop(0, 'rgba(255,214,150,.5)'); g.addColorStop(1, 'rgba(255,214,150,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#f2f4ff'; c.fillRect(0, H * 0.8, W, H); c.fillStyle = '#1a1c2e'; c.fillRect(lx - 4, 120, 8, H * 0.8 - 120); c.fillStyle = '#ffe7b0'; c.beginPath(); c.arc(lx, 120, 14, 0, 7); c.fill();
+      c.fillStyle = '#fff'; for (let i = 0; i < 220; i++) { c.globalAlpha = 0.4 + r() * 0.6; c.beginPath(); c.arc(r() * W, r() * H, 1 + r() * 4, 0, 7); c.fill(); } c.globalAlpha = 1;
+    } else if (style === 'hearts') {
+      grad([[0, '#1a0a1f'], [1, '#3a1030']]);
+      for (let i = 0; i < 60; i++) { const x = r() * W, y = r() * H, s = 8 + r() * 36; c.save(); c.translate(x, y); c.rotate((r() - 0.5) * 0.8); c.globalAlpha = 0.25 + r() * 0.6; c.fillStyle = ['#ff5c8a', '#ff8fb3', '#ffd36b', '#ff6b81'][i % 4]; c.beginPath(); c.moveTo(0, s); c.bezierCurveTo(-s * 1.3, -s * 0.2, -s * 0.5, -s * 1.1, 0, -s * 0.4); c.bezierCurveTo(s * 0.5, -s * 1.1, s * 1.3, -s * 0.2, 0, s); c.fill(); c.restore(); } c.globalAlpha = 1;
+    } else {
+      grad([[0, '#070512'], [1, '#2a1030']]);
+      for (let i = 0; i < 26; i++) { const x = r() * W, y = H * (0.1 + r() * 0.6), s = 10 + r() * 14; c.fillStyle = '#ff8a5c'; c.shadowBlur = 30; c.shadowColor = '#ffb648'; c.beginPath(); c.ellipse(x, y, s, s * 1.4, 0, 0, 7); c.fill(); } c.shadowBlur = 0;
+      c.fillStyle = '#120a1a'; for (let i = 0; i < 30; i++) { const x = (i / 30) * W, h = 20 + r() * 70; c.fillRect(x, H - h, W / 30 + 1, h); }
+    }
+    // виньетка
+    const vg = c.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.95); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.35)'); c.fillStyle = vg; c.fillRect(0, 0, W, H);
+  };
+  const wrap = (c, text, maxW) => { const words = text.split(' '); const lines = []; let line = ''; for (const w of words) { const t = line ? line + ' ' + w : w; if (c.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; } if (line) lines.push(line); return lines; };
+  const renderCard = (i) => {
+    const r = mulberry(i * 7919 + 13); const style = STYLES[i % STYLES.length]; const date = new Date(START); date.setDate(START.getDate() + i);
+    const dpr = Math.min(2, devicePixelRatio || 1); cv.width = CW * dpr; cv.height = CH * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    paintArt(ctx, style, r);
+    // бумага с текстом
+    const px = 40, py = CH * 0.52, pw = CW - 80, ph = CH - py - 30;
+    ctx.save(); ctx.shadowBlur = 30; ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.fillStyle = '#fffaf3'; ctx.beginPath(); ctx.roundRect(px, py, pw, ph, 14); ctx.fill(); ctx.restore();
+    ctx.fillStyle = '#5a2a3a'; ctx.font = '700 15px Unbounded, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(`ОТКРЫТКА № ${i + 1}`, px + 26, py + 20);
+    ctx.fillStyle = '#9a7f8a'; ctx.font = '500 14px Manrope, sans-serif'; ctx.fillText(fmt(date), px + 26, py + 42);
+    const text = textFor(i); ctx.fillStyle = '#3a1a2a'; const fs = text.length > 150 ? 24 : 27; ctx.font = `500 ${fs}px Caveat, cursive`;
+    const lines = wrap(ctx, text, pw - 200); let y = py + 70; for (const l of lines.slice(0, 5)) { ctx.fillText(l, px + 26, y); y += fs * 1.15; }
+    ctx.fillStyle = '#c2497a'; ctx.font = '700 22px Caveat, cursive'; ctx.textAlign = 'right'; ctx.fillText('Аяне, с любовью', px + pw - 26, py + ph - 40);
+    // марка
+    const sx = px + pw - 150, sy = py + 18; ctx.fillStyle = '#fff'; ctx.fillRect(sx, sy, 110, 78); ctx.strokeStyle = '#d9c6cf'; ctx.setLineDash([3, 3]); ctx.lineWidth = 2; ctx.strokeRect(sx + 4, sy + 4, 102, 70); ctx.setLineDash([]);
+    const sg = ctx.createLinearGradient(sx, sy, sx + 110, sy + 78); sg.addColorStop(0, '#ff5c8a'); sg.addColorStop(1, '#ffb648'); ctx.fillStyle = sg; ctx.fillRect(sx + 10, sy + 10, 90, 58);
+    ctx.fillStyle = '#fff'; ctx.font = '700 30px Manrope, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('💗', sx + 55, sy + 36); ctx.font = '700 10px Unbounded, sans-serif'; ctx.fillText('ПОЧТА АЯНЫ', sx + 55, sy + 60);
+    // штемпель
+    ctx.save(); ctx.translate(sx - 40, sy + 48); ctx.rotate(-0.25); ctx.strokeStyle = 'rgba(90,40,60,.55)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, 36, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, 29, 0, 7); ctx.stroke();
+    ctx.fillStyle = 'rgba(90,40,60,.65)'; ctx.font = '700 9px Unbounded, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ДОСТАВЛЕНО', 0, -8); ctx.font = '600 11px Manrope, sans-serif'; ctx.fillText(`${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}`, 0, 8); ctx.restore();
+    return { date, text, style };
+  };
+
+  /* ---------- почта ---------- */
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const daysSince = Math.max(0, Math.floor((today - START) / 86400000));
+  const available = daysSince + 1;                // сколько открыток уже пришло
+  const TOTAL = available + 3; // плюс три будущих, запертых
+  let opened = new Set(store.get('opened', []));
+  const list = $('list');
+  const TITLES = ['Первая открытка', 'Утро', 'Тише', 'Обычный день', 'Погода', 'Честно', 'Имя', 'Улыбка', 'Слишком много', 'Без ответа', 'Дождь', 'Чай', 'Плечо', 'Запас слов', 'Смех', 'Закат', 'Недоделанный день', 'Просьба', 'Стараюсь', 'Без слов', 'Через год', 'Ладно', 'Секрет', 'Не поэт', 'Три слова', 'Минута', 'Время суток', 'Надёжный', 'Репетиция', 'Долго', 'Молчание', 'Просто так', 'Маленькое хорошее', 'Лучше', 'Семь звёзд', 'Спасибо', 'Первый взгляд', 'Какой день', 'Тихо', 'Ещё много'];
+  const build = () => {
+    list.innerHTML = '';
+    for (let i = TOTAL - 1; i >= 0; i--) {
+      const d = new Date(START); d.setDate(START.getDate() + i);
+      const el = document.createElement('div'); const isNew = i < available && !opened.has(i); const locked = i >= available;
+      el.className = 'env' + (opened.has(i) ? ' opened' : '') + (locked ? ' locked' : '');
+      el.innerHTML = `<div class="ic"></div><div class="t"><b>${locked ? 'Ещё в пути' : (TITLES[i] || 'Открытка № ' + (i + 1))}</b><span>${locked ? 'придёт ' + fmt(d) : fmt(d) + ' · № ' + (i + 1)}</span></div>${isNew ? '<span class="new">НОВАЯ</span>' : ''}`;
+      if (!locked) el.addEventListener('click', () => open(i));
+      list.appendChild(el);
+    }
+  };
+  let current = 0;
+  const open = (i) => { current = i; renderCard(i); opened.add(i); store.set('opened', [...opened]); $('viewer').classList.add('show'); build(); $('viewer').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  $('closeBtn').addEventListener('click', () => { $('viewer').classList.remove('show'); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  $('saveBtn').addEventListener('click', () => { const a = document.createElement('a'); a.download = `открытка-${current + 1}.png`; a.href = cv.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); });
+
+  const tick = () => { const n = new Date(today); n.setDate(today.getDate() + 1); const s = Math.max(0, Math.floor((n - Date.now()) / 1000)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); $('next').innerHTML = `открыток пришло: <b>${available}</b> · следующая через <b>${h} ч ${String(m).padStart(2, '0')} мин</b>`; };
+  tick(); setInterval(tick, 30000);
+  document.fonts?.ready.then(() => { build(); const firstNew = [...Array(available).keys()].reverse().find((i) => !opened.has(i)); if (firstNew !== undefined) open(firstNew); else if (available > 0) { renderCard(available - 1); $('viewer').classList.add('show'); } });
+})();
+</script>
+</body>
+</html>

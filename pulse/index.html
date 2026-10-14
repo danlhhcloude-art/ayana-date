@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="description" content="Попади в ритм моего сердца.">
+  <meta name="theme-color" content="#0c0610">
+  <title>В унисон</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink: #fff0f5; --muted: #a08798; --rose: #ff4d7d; --gold: #ffd36b; --teal: #4fd1c5; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; height: 100%; background: #0c0610; color: var(--ink); overflow: hidden; }
+    body { font-family: 'Manrope', system-ui, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    #hud { position: fixed; top: 0; left: 0; right: 0; z-index: 5; padding: 14px 18px; display: none; justify-content: space-between; font-family: 'Unbounded', sans-serif; font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: var(--muted); pointer-events: none; }
+    #hud.show { display: flex; }
+    #hud b { color: var(--gold); }
+    #judge { position: fixed; left: 0; right: 0; top: 22%; text-align: center; z-index: 6; pointer-events: none; font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(22px, 7vw, 36px); color: #fff; opacity: 0; transform: scale(.8); transition: .25s; text-shadow: 0 0 16px currentColor; }
+    #judge.show { opacity: 1; transform: scale(1); }
+    .overlay { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 24px 20px; text-align: center; background: rgba(12,6,16,.6); backdrop-filter: blur(4px); }
+    .overlay.show { display: flex; animation: fadeIn .7s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .panel { max-width: 420px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 11px; letter-spacing: .35em; text-transform: uppercase; color: var(--teal); text-shadow: 0 0 10px var(--teal); margin-bottom: 14px; }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(26px, 8vw, 40px); margin: 0 0 10px; color: #fff; text-shadow: 0 0 10px var(--rose), 0 0 30px rgba(255,77,125,.6); }
+    .lead { font-size: 16px; line-height: 1.55; color: #e6d6df; margin: 0 0 8px; }
+    .hint { font-size: 13px; color: var(--muted); margin: 14px 0 24px; line-height: 1.5; }
+    .hint b { color: var(--gold); }
+    .big { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(44px, 16vw, 80px); color: #fff; text-shadow: 0 0 20px var(--rose), 0 0 50px rgba(255,77,125,.6); margin: 6px 0; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .06em; color: #fff; background: transparent; border: 2px solid var(--rose); border-radius: 999px; padding: 14px 28px; cursor: pointer; box-shadow: 0 0 12px var(--rose); text-shadow: 0 0 8px var(--rose); text-decoration: none; display: inline-block; margin: 4px; }
+    .btn.teal { border-color: var(--teal); box-shadow: 0 0 12px var(--teal); text-shadow: 0 0 8px var(--teal); }
+    .btn:active { transform: scale(.96); }
+  </style>
+</head>
+<body>
+  <canvas id="cv"></canvas>
+  <div id="hud"><span>удар <b id="beat">0</b> / 16</span><span>синхрон <b id="sync">0%</b></span></div>
+  <div id="judge"></div>
+
+  <div class="overlay show" id="intro">
+    <div class="panel">
+      <div class="tag">ритм · касание · унисон</div>
+      <h1>В унисон</h1>
+      <p class="lead">Это моё сердце. Оно бьётся чуть быстрее, когда ты рядом. Попробуй попасть в его ритм.</p>
+      <p class="hint">Кольцо сжимается к сердцу. Нажми, когда они совпадут. Всего <b>16 ударов</b>. Чем точнее, тем выше синхрон.</p>
+      <button class="btn" id="startBtn">Приложить руку</button>
+    </div>
+  </div>
+  <div class="overlay" id="end">
+    <div class="panel">
+      <div class="tag">результат</div>
+      <div class="big" id="score">0%</div>
+      <h1 id="verdict" style="font-size:clamp(20px,6vw,28px)"></h1>
+      <p class="lead" id="verdictText"></p>
+      <button class="btn" id="againBtn">Ещё раз</button><a class="btn teal" href="../hub/">Другие игры</a>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  let W = 0, H = 0, DPR = 1;
+  const resize = () => { DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; };
+  addEventListener('resize', resize); resize();
+
+  /* ---------- звук ---------- */
+  let ac, master;
+  const ensure = () => { if (ac) return; ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination); };
+  const thump = (t, vol = 0.5) => { const o = ac.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.18); const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22); o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.3); };
+  const ding = (good) => { const t = ac.currentTime; const f = good === 2 ? 1046.5 : good === 1 ? 783.99 : 220; const o = ac.createOscillator(); o.type = good ? 'sine' : 'triangle'; o.frequency.value = f; const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5); o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.6); };
+
+  /* ---------- игра ---------- */
+  const G = { phase: 'intro', t: 0, beats: [], idx: 0, hits: [], flash: 0, parts: [], last: 0, judged: new Set() };
+  const TOTAL = 16;
+  const schedule = () => { G.beats = []; let t = G.t + 2.2; let period = 1.05; for (let i = 0; i < TOTAL; i++) { G.beats.push(t); t += period; if (i % 4 === 3) period = Math.max(0.6, period - 0.09); } };
+  const start = () => { ensure(); if (ac.state === 'suspended') ac.resume(); G.phase = 'play'; G.idx = 0; G.hits = []; G.judged = new Set(); G.parts = []; schedule(); $('intro').classList.remove('show'); $('end').classList.remove('show'); $('hud').classList.add('show'); $('beat').textContent = 0; $('sync').textContent = '0%'; G.nextThump = 0; };
+  $('startBtn').addEventListener('click', start); $('againBtn').addEventListener('click', start);
+
+  const judgeEl = $('judge'); let judgeT = null;
+  const judge = (text, col) => { judgeEl.textContent = text; judgeEl.style.color = col; judgeEl.classList.add('show'); clearTimeout(judgeT); judgeT = setTimeout(() => judgeEl.classList.remove('show'), 420); };
+  const burst = (n, col, sp) => { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, s = 1 + Math.random() * sp; G.parts.push({ x: W / 2, y: H / 2, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, col, r: 1.5 + Math.random() * 3 }); } };
+  const tap = () => {
+    if (G.phase !== 'play') return;
+    // ближайший ещё не оценённый удар
+    let best = -1, bd = 1e9; G.beats.forEach((b, i) => { if (G.judged.has(i)) return; const d = Math.abs(G.t - b); if (d < bd) { bd = d; best = i; } });
+    if (best < 0 || bd > 0.45) { judge('рано', '#a08798'); return; }
+    G.judged.add(best);
+    const q = bd < 0.07 ? 2 : bd < 0.16 ? 1 : 0;
+    G.hits.push(q === 2 ? 1 : q === 1 ? 0.6 : 0.1);
+    judge(q === 2 ? 'в унисон' : q === 1 ? 'почти' : 'мимо', q === 2 ? '#ffd36b' : q === 1 ? '#4fd1c5' : '#ff4d7d');
+    ding(q); burst(q === 2 ? 40 : q === 1 ? 18 : 6, q === 2 ? '#ffd36b' : q === 1 ? '#4fd1c5' : '#ff4d7d', q === 2 ? 6 : 3); G.flash = q === 2 ? 1 : 0.5;
+    updateHud();
+  };
+  const updateHud = () => { $('beat').textContent = G.judged.size; const s = G.hits.length ? Math.round((G.hits.reduce((a, b) => a + b, 0) / TOTAL) * 100) : 0; $('sync').textContent = s + '%'; };
+  addEventListener('pointerdown', (e) => { if (e.target.closest('button, a')) return; tap(); });
+  addEventListener('keydown', (e) => { if (e.code === 'Space') tap(); });
+
+  const finish = () => {
+    G.phase = 'end';
+    const s = Math.round((G.hits.reduce((a, b) => a + b, 0) / TOTAL) * 100);
+    $('score').textContent = s + '%';
+    const [v, t] = s >= 90 ? ['Наши сердца бьются в унисон', 'Я так и знал. Теперь это доказано. Аяна, с таким синхроном нам просто нельзя не быть вместе.']
+      : s >= 70 ? ['Почти в унисон', 'Пара ударов разошлись, но это нормально. Главное, что ты слушала. Я тоже буду слушать. Всегда.']
+      : s >= 45 ? ['Мы ещё настраиваемся', 'Сердца не сразу попадают в такт. На это нужно время. У нас оно есть.']
+      : ['Моё сердце слишком волнуется', 'Это не ты сбилась. Это оно колотится, когда ты рядом. Попробуй ещё, я постараюсь успокоиться.'];
+    $('verdict').textContent = v; $('verdictText').textContent = t;
+    setTimeout(() => $('end').classList.add('show'), 900);
+  };
+
+  const heart = (c, x, y, s) => { c.beginPath(); c.moveTo(x, y + s); c.bezierCurveTo(x - s * 1.3, y - s * 0.2, x - s * 0.5, y - s * 1.1, x, y - s * 0.4); c.bezierCurveTo(x + s * 0.5, y - s * 1.1, x + s * 1.3, y - s * 0.2, x, y + s); c.closePath(); };
+  const loop = (now) => {
+    const dt = Math.min(0.05, (now - G.last) / 1000 || 0); G.last = now; G.t += dt;
+    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7); g.addColorStop(0, '#2a0b1e'); g.addColorStop(1, '#0c0610'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.22;
+    // кардиограмма на фоне
+    ctx.strokeStyle = 'rgba(255,77,125,.18)'; ctx.lineWidth = 2; ctx.beginPath(); for (let x = 0; x <= W; x += 4) { const p = ((x + G.t * 120) % 260) / 260; let y = 0; if (p > 0.4 && p < 0.5) y = -Math.sin((p - 0.4) * 31.4) * 60; else if (p > 0.5 && p < 0.56) y = Math.sin((p - 0.5) * 52) * 30; else if (p > 0.3 && p < 0.38) y = -Math.sin((p - 0.3) * 39) * 10; x ? ctx.lineTo(x, cy + R * 1.9 + y) : ctx.moveTo(x, cy + R * 1.9 + y); } ctx.stroke();
+
+    let pulse = 0;
+    if (G.phase === 'play') {
+      // удары: сердце пульсирует и звучит
+      G.beats.forEach((b, i) => { const d = G.t - b; if (d >= 0 && d < 0.25) pulse = Math.max(pulse, 1 - d / 0.25); if (G.nextThump === i && d >= -0.05) { thump(ac.currentTime, 0.5); G.nextThump = i + 1; } });
+      // пропущенные удары
+      G.beats.forEach((b, i) => { if (!G.judged.has(i) && G.t - b > 0.45) { G.judged.add(i); G.hits.push(0); judge('пропуск', '#a08798'); updateHud(); } });
+      // сжимающиеся кольца для ближайших ударов
+      G.beats.forEach((b, i) => { const d = b - G.t; if (d < 0 || d > 1.3) return; const rr = R + d * R * 2.2; ctx.globalAlpha = 0.25 + (1 - d / 1.3) * 0.75; ctx.strokeStyle = d < 0.07 ? '#ffd36b' : '#ffffff'; ctx.lineWidth = d < 0.16 ? 4 : 2; ctx.shadowBlur = d < 0.16 ? 20 : 0; ctx.shadowColor = '#ffd36b'; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, 7); ctx.stroke(); ctx.shadowBlur = 0; }); ctx.globalAlpha = 1;
+      if (G.judged.size >= TOTAL && G.t > G.beats[TOTAL - 1] + 0.5) finish();
+    } else { pulse = Math.max(0, Math.sin(G.t * 2.4)) ** 6; }
+    // целевое кольцо
+    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    // сердце
+    const s = R * 0.62 * (1 + pulse * 0.18 + G.flash * 0.1); G.flash = Math.max(0, G.flash - dt * 3);
+    const hg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 1.6); hg.addColorStop(0, `rgba(255,77,125,${0.35 + pulse * 0.4})`); hg.addColorStop(1, 'rgba(255,77,125,0)'); ctx.fillStyle = hg; ctx.fillRect(cx - R * 2, cy - R * 2, R * 4, R * 4);
+    ctx.save(); ctx.shadowBlur = 40 + pulse * 40; ctx.shadowColor = '#ff4d7d'; const grd = ctx.createLinearGradient(cx - s, cy - s, cx + s, cy + s); grd.addColorStop(0, '#ff7fa6'); grd.addColorStop(1, '#d81b60'); ctx.fillStyle = grd; heart(ctx, cx, cy - s * 0.15, s); ctx.fill(); ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.ellipse(cx - s * 0.35, cy - s * 0.55, s * 0.18, s * 0.3, -0.6, 0, 7); ctx.fill();
+    // частицы
+    for (const p of G.parts) { ctx.globalAlpha = p.life; ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); p.x += p.vx; p.y += p.vy; p.vx *= 0.98; p.vy *= 0.98; p.life -= 0.02; } ctx.globalAlpha = 1; G.parts = G.parts.filter((p) => p.life > 0);
+    ctx.restore(); requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

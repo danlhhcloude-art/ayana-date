@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Собери картинку, и она скажет то, что я не договорил.">
+  <meta name="theme-color" content="#0a0a14">
+  <title>Пазл для Аяны</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    :root { --bg: #0a0a14; --ink: #f6f1ff; --muted: #8f8aaa; --rose: #ff5c8a; --gold: #ffd36b; --violet: #a78bfa; --teal: #4fd1c5; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); }
+    body { font-family: 'Manrope', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; touch-action: manipulation; }
+    body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(50% 35% at 50% 0%, rgba(79,209,197,.12), transparent 70%), radial-gradient(40% 30% at 100% 100%, rgba(255,92,138,.10), transparent 70%); }
+    .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 22px 14px 60px; }
+    header { text-align: center; margin-bottom: 14px; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: var(--teal); text-shadow: 0 0 8px rgba(79,209,197,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(24px, 7vw, 34px); margin: 6px 0 8px; color: #fff; text-shadow: 0 0 12px var(--violet), 0 0 30px rgba(167,139,250,.5); }
+    .lead { color: #cfc9e2; font-size: 15px; line-height: 1.55; margin: 0 auto; max-width: 400px; }
+    .stats { display: flex; justify-content: center; gap: 18px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+    .stats b { color: var(--gold); }
+    .board-wrap { position: relative; border-radius: 18px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); background: #05050f; aspect-ratio: 1 / 1; }
+    canvas#board { width: 100%; height: 100%; display: block; cursor: pointer; }
+    .done-msg { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; padding: 18px; background: linear-gradient(180deg, transparent 50%, rgba(5,5,15,.85)); }
+    .done-msg.show { display: flex; animation: rise .7s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .done-msg p { margin: 0; font-family: 'Caveat', cursive; font-size: 26px; line-height: 1.2; color: #fff; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
+    .btn.teal { border-color: var(--teal); box-shadow: 0 0 12px rgba(79,209,197,.5); }
+    .preview { margin-top: 14px; text-align: center; font-size: 12px; color: var(--muted); }
+    .preview canvas { width: 96px; height: 96px; border-radius: 10px; display: block; margin: 8px auto 0; box-shadow: 0 6px 16px rgba(0,0,0,.5); opacity: .8; }
+    .hidden { display: none !important; }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+    .foot a { color: var(--rose); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="tag">пятнашки</div>
+      <h1>Собери картинку</h1>
+      <p class="lead">Аяна, картинка рассыпалась. Нажимай на плитки рядом с пустой клеткой, чтобы двигать их. Когда соберёшь, она кое-что скажет.</p>
+      <div class="stats"><span>ходов <b id="moves">0</b></span><span>уровень <b id="level">1</b></span></div>
+    </header>
+    <div class="board-wrap"><canvas id="board"></canvas><div class="done-msg" id="doneMsg"><p id="doneText"></p></div></div>
+    <div class="row"><button class="btn" id="shuffleBtn">перемешать</button><button class="btn teal hidden" id="nextBtn">следующая →</button></div>
+    <div class="preview">подсказка, как должно быть<canvas id="prev"></canvas></div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a></div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const mulberry = (s) => () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const PIC = 720;
+  const MESSAGES = [
+    'Аяна, вот что было на картинке: я тебя люблю.',
+    'Собралось. Как и всё, что связано с тобой.',
+    'Ты только что собрала моё сердце. Береги его.',
+    'Картинка простая. Чувство тоже. Люблю.',
+    'Пазл готов. А я давно готов. К тебе.',
+    'Каждая плитка на месте. Как ты в моей жизни.',
+  ];
+  const PALETTES = [['#05051a', '#1c1240', '#ff5c8a'], ['#2b1546', '#c2416b', '#ffd36b'], ['#0b2a4a', '#0e6f8f', '#4fd1c5'], ['#1a0a1f', '#3a1030', '#ff8fb3'], ['#070512', '#2a1030', '#ffb648'], ['#0a0f24', '#2b3560', '#a78bfa']];
+
+  /* ---------- картинка ---------- */
+  const pic = document.createElement('canvas'); pic.width = PIC; pic.height = PIC; const pc = pic.getContext('2d');
+  const heart = (c, x, y, s) => { c.beginPath(); c.moveTo(x, y + s); c.bezierCurveTo(x - s * 1.3, y - s * 0.2, x - s * 0.5, y - s * 1.1, x, y - s * 0.4); c.bezierCurveTo(x + s * 0.5, y - s * 1.1, x + s * 1.3, y - s * 0.2, x, y + s); c.closePath(); };
+  const paint = (level) => {
+    const r = mulberry(level * 977 + 3); const [c1, c2, acc] = PALETTES[level % PALETTES.length];
+    const g = pc.createLinearGradient(0, 0, 0, PIC); g.addColorStop(0, c1); g.addColorStop(1, c2); pc.fillStyle = g; pc.fillRect(0, 0, PIC, PIC);
+    pc.fillStyle = '#fff'; for (let i = 0; i < 160; i++) { pc.globalAlpha = 0.3 + r() * 0.7; pc.beginPath(); pc.arc(r() * PIC, r() * PIC, r() * 2.2, 0, 7); pc.fill(); } pc.globalAlpha = 1;
+    const kind = level % 3;
+    if (kind === 0) { // большое сердце
+      pc.save(); pc.shadowBlur = 60; pc.shadowColor = acc; const hg = pc.createLinearGradient(0, PIC * 0.25, 0, PIC * 0.75); hg.addColorStop(0, '#fff'); hg.addColorStop(1, acc); pc.fillStyle = hg; heart(pc, PIC / 2, PIC * 0.45, PIC * 0.22); pc.fill(); pc.restore();
+    } else if (kind === 1) { // луна и город
+      pc.fillStyle = '#fff3dc'; pc.shadowBlur = 50; pc.shadowColor = '#fff3dc'; pc.beginPath(); pc.arc(PIC * 0.68, PIC * 0.3, PIC * 0.11, 0, 7); pc.fill(); pc.shadowBlur = 0;
+      pc.fillStyle = 'rgba(0,0,0,.55)'; for (let i = 0; i < 18; i++) { const w = PIC / 18, h = PIC * (0.15 + r() * 0.3); pc.fillRect(i * w, PIC * 0.8 - h, w - 3, h + PIC); for (let y = PIC * 0.8 - h + 10; y < PIC * 0.8; y += 16) if (r() < 0.5) { pc.fillStyle = acc; pc.globalAlpha = 0.7; pc.fillRect(i * w + 8, y, 6, 8); pc.globalAlpha = 1; pc.fillStyle = 'rgba(0,0,0,.55)'; } }
+      pc.fillStyle = acc; pc.shadowBlur = 30; pc.shadowColor = acc; heart(pc, PIC * 0.3, PIC * 0.32, PIC * 0.07); pc.fill(); pc.shadowBlur = 0;
+    } else { // созвездие
+      const pts = [[0.5, 0.3], [0.35, 0.22], [0.25, 0.4], [0.35, 0.58], [0.5, 0.7], [0.65, 0.58], [0.75, 0.4], [0.65, 0.22]].map(([x, y]) => [x * PIC, y * PIC]);
+      pc.strokeStyle = acc; pc.lineWidth = 3; pc.shadowBlur = 16; pc.shadowColor = acc; pc.beginPath(); pts.forEach((p, i) => (i ? pc.lineTo(...p) : pc.moveTo(...p))); pc.closePath(); pc.stroke();
+      pc.fillStyle = '#fff'; pts.forEach((p) => { pc.beginPath(); pc.arc(p[0], p[1], 9, 0, 7); pc.fill(); }); pc.shadowBlur = 0;
+    }
+    pc.fillStyle = '#fff'; pc.shadowBlur = 24; pc.shadowColor = acc; pc.font = `800 ${PIC * 0.14}px Unbounded, sans-serif`; pc.textAlign = 'center'; pc.textBaseline = 'middle'; pc.fillText('АЯНА', PIC / 2, PIC * 0.86); pc.shadowBlur = 0;
+    pc.font = `500 ${PIC * 0.045}px Caveat, cursive`; pc.fillStyle = 'rgba(255,255,255,.85)'; pc.fillText('я тебя люблю', PIC / 2, PIC * 0.955);
+    const prev = $('prev'); prev.width = 192; prev.height = 192; prev.getContext('2d').drawImage(pic, 0, 0, 192, 192);
+  };
+
+  /* ---------- пятнашки ---------- */
+  const N = 3; const cv = $('board'), ctx = cv.getContext('2d'); let size = 0, DPR = 1;
+  let tiles = [], empty = N * N - 1, moves = 0, level = 1, solved = false, anim = null;
+  const resize = () => { const r = cv.getBoundingClientRect(); DPR = Math.min(2, devicePixelRatio || 1); size = r.width; cv.width = size * DPR; cv.height = size * DPR; draw(); };
+  addEventListener('resize', resize);
+  const isSolved = () => tiles.every((t, i) => t === i);
+  const neighbors = (i) => { const x = i % N, y = Math.floor(i / N); const out = []; if (x > 0) out.push(i - 1); if (x < N - 1) out.push(i + 1); if (y > 0) out.push(i - N); if (y < N - 1) out.push(i + N); return out; };
+  const shuffle = () => { tiles = [...Array(N * N).keys()]; empty = N * N - 1; let prev = -1; for (let k = 0; k < 120; k++) { const opts = neighbors(empty).filter((n) => n !== prev); const n = opts[Math.floor(Math.random() * opts.length)]; tiles[empty] = tiles[n]; tiles[n] = N * N - 1; prev = empty; empty = n; } if (isSolved()) shuffle(); moves = 0; solved = false; $('moves').textContent = 0; $('doneMsg').classList.remove('show'); $('nextBtn').classList.add('hidden'); draw(); };
+  const draw = () => {
+    if (!size) return; ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, size, size);
+    const ts = size / N, ps = PIC / N, gap = solved ? 0 : 3;
+    tiles.forEach((t, i) => {
+      if (t === N * N - 1 && !solved) return;
+      let x = (i % N) * ts, y = Math.floor(i / N) * ts;
+      if (anim && anim.from === i) { const k = anim.k; x = x + ((anim.to % N) * ts - x) * k; y = y + (Math.floor(anim.to / N) * ts - y) * k; }
+      ctx.save(); ctx.beginPath(); ctx.roundRect(x + gap, y + gap, ts - gap * 2, ts - gap * 2, solved ? 0 : 10); ctx.clip();
+      ctx.drawImage(pic, (t % N) * ps, Math.floor(t / N) * ps, ps, ps, x, y, ts, ts);
+      if (!solved) { ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(x, y, ts, ts * 0.5); }
+      ctx.restore();
+    });
+    ctx.restore();
+  };
+  const click = (e) => {
+    if (solved || anim) return;
+    const r = cv.getBoundingClientRect(); const x = Math.floor((e.clientX - r.left) / (size / N)), y = Math.floor((e.clientY - r.top) / (size / N));
+    const i = y * N + x; if (!neighbors(empty).includes(i)) return;
+    const from = i, to = empty; anim = { from, to, k: 0 }; const t0 = performance.now();
+    const step = (now) => { anim.k = Math.min(1, (now - t0) / 120); draw(); if (anim.k < 1) requestAnimationFrame(step); else { tiles[to] = tiles[from]; tiles[from] = N * N - 1; empty = from; anim = null; moves++; $('moves').textContent = moves; if (isSolved()) win(); else draw(); } };
+    requestAnimationFrame(step);
+  };
+  cv.addEventListener('click', click);
+  const win = () => { solved = true; draw(); $('doneText').textContent = MESSAGES[(level - 1) % MESSAGES.length]; $('doneMsg').classList.add('show'); $('nextBtn').classList.remove('hidden'); confetti({ particleCount: 120, spread: 90, startVelocity: 28, ticks: 150, colors: ['#ffd36b', '#ff5c8a', '#a78bfa', '#4fd1c5', '#fff'], origin: { y: 0.5 } }); };
+  $('shuffleBtn').addEventListener('click', shuffle);
+  $('nextBtn').addEventListener('click', () => { level++; $('level').textContent = level; paint(level); shuffle(); });
+  document.fonts?.ready.then(() => { paint(level); shuffle(); resize(); });
+  setTimeout(() => { if (!tiles.length) { paint(level); shuffle(); resize(); } }, 800);
+})();
+</script>
+</body>
+</html>
