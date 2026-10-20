@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Печенье с предсказаниями. Все про нас.">
+  <meta name="theme-color" content="#1a1208">
+  <title>Печенье с предсказанием</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; }
+    body { font-family: 'Manrope', system-ui, sans-serif; color: #fff7ea; background: radial-gradient(60% 40% at 50% 0%, rgba(255,211,107,.16), transparent 70%), linear-gradient(180deg, #1a1208, #2a1c0c); min-height: 100vh; overflow-x: hidden; user-select: none; -webkit-user-select: none; }
+    .wrap { max-width: 460px; margin: 0 auto; padding: 24px 16px 60px; text-align: center; }
+    .tag { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .35em; text-transform: uppercase; color: #ffd36b; text-shadow: 0 0 8px rgba(255,211,107,.6); }
+    h1 { font-family: 'Unbounded', sans-serif; font-weight: 800; font-size: clamp(22px, 6.5vw, 32px); margin: 6px 0 8px; text-shadow: 0 0 12px rgba(255,211,107,.5); }
+    .lead { color: #e8d9c0; font-size: 15px; line-height: 1.55; margin: 0 auto 10px; max-width: 400px; }
+    .stage { position: relative; width: min(84vw, 340px); height: 300px; margin: 16px auto 0; cursor: pointer; }
+    .half { position: absolute; top: 70px; width: 170px; height: 150px; transition: transform .7s cubic-bezier(.2,.8,.2,1), opacity .5s; }
+    .half svg { width: 100%; height: 100%; filter: drop-shadow(0 14px 20px rgba(0,0,0,.45)); }
+    .l { left: 0; } .r { right: 0; }
+    .stage.open .l { transform: translate(-60px, 20px) rotate(-18deg); }
+    .stage.open .r { transform: translate(60px, 20px) rotate(18deg); }
+    .stage.shake .half { animation: shake .4s ease; }
+    @keyframes shake { 25% { transform: translateX(-5px) rotate(-2deg); } 75% { transform: translateX(5px) rotate(2deg); } }
+    .slip { position: absolute; left: 50%; top: 110px; width: 86%; transform: translate(-50%, 0) scaleX(0); background: #fffaf0; color: #3a2a1a; border-radius: 6px; padding: 14px 16px; font-family: 'Caveat', cursive; font-size: 24px; line-height: 1.2; box-shadow: 0 10px 30px rgba(0,0,0,.4); transition: transform .5s .5s cubic-bezier(.2,.8,.2,1); background-image: repeating-linear-gradient(90deg, transparent 0 10px, rgba(0,0,0,.025) 10px 11px); }
+    .slip::before { content: '🥠 предсказание'; display: block; font-family: 'Unbounded', sans-serif; font-size: 9px; letter-spacing: .25em; text-transform: uppercase; color: #b58a3c; margin-bottom: 6px; }
+    .stage.open .slip { transform: translate(-50%, 0) scaleX(1); }
+    .crumb { position: absolute; width: 6px; height: 6px; border-radius: 2px; background: #d9a85c; pointer-events: none; animation: crumb 1s ease-out forwards; }
+    @keyframes crumb { to { transform: translate(var(--dx), 120px) rotate(200deg); opacity: 0; } }
+    .hint { font-family: 'Unbounded', sans-serif; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: #c9a86a; margin-top: 8px; }
+    .row { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+    .btn { font: inherit; font-family: 'Unbounded', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .05em; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 12px 20px; cursor: pointer; text-decoration: none; }
+    .btn.gold { border-color: #ffd36b; box-shadow: 0 0 12px rgba(255,211,107,.5); }
+    .count { font-size: 13px; color: #c9a86a; margin-top: 12px; }
+    .count b { color: #ffd36b; }
+    .hidden { display: none !important; }
+    .foot { color: #a08b60; font-size: 12px; margin-top: 26px; }
+    .foot a { color: #ffb3cf; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="tag">разломи</div>
+    <h1>Печенье с предсказанием</h1>
+    <p class="lead">Аяна, я испёк тебе целую тарелку. Внутри каждого предсказание. Все они про нас, и все сбудутся: я проверил рецепт.</p>
+    <div class="stage" id="stage">
+      <div class="half l"><svg viewBox="0 0 170 150"><path d="M160 75 C160 30 120 10 85 10 C40 10 10 40 10 75 C10 110 40 140 85 140 C120 140 160 120 160 75 Z" fill="#e8b96a"/><path d="M160 75 C130 60 110 90 85 75 C60 60 40 95 10 75" fill="none" stroke="#c9924a" stroke-width="5" stroke-linecap="round"/><path d="M40 50 q20 -10 40 0" fill="none" stroke="#f3d59a" stroke-width="4" stroke-linecap="round"/></svg></div>
+      <div class="half r"><svg viewBox="0 0 170 150"><path d="M10 75 C10 30 50 10 85 10 C130 10 160 40 160 75 C160 110 130 140 85 140 C50 140 10 120 10 75 Z" fill="#e8b96a"/><path d="M10 75 C40 60 60 90 85 75 C110 60 130 95 160 75" fill="none" stroke="#c9924a" stroke-width="5" stroke-linecap="round"/><path d="M90 50 q20 -10 40 0" fill="none" stroke="#f3d59a" stroke-width="4" stroke-linecap="round"/></svg></div>
+      <div class="slip" id="slip"></div>
+    </div>
+    <div class="hint" id="hint">нажми на печенье</div>
+    <div class="row"><button class="btn gold hidden" id="moreBtn">ещё одно</button></div>
+    <div class="count">печений съедено: <b id="n">0</b></div>
+    <div class="foot"><a href="../hub/">← все игры для Аяны</a></div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const F = [
+    'Сегодня тебя обнимут. Я уже иду.',
+    'В ближайшие сутки кто-то скажет тебе «люблю». Спойлер: это я.',
+    'Тебя ждёт неожиданный комплимент. Вот он: ты красивая. Сбылось.',
+    'Скоро будет вечер, который вы оба запомните. Я уже выбираю место.',
+    'Человек, который думает о тебе прямо сейчас, не умеет думать ни о чём другом.',
+    'Завтра утром тебе будет тепло. Даже если холодно. Я позабочусь.',
+    'В твоей жизни появится тот, кто будет носить твои пакеты. Уже появился.',
+    'Ты будешь смеяться в ближайший час. Если нет, я расскажу плохую шутку. Это сработает.',
+    'Через год ты оглянешься на этот день и улыбнёшься. Потому что он был началом.',
+    'Тебе напишут сообщение с сердечком. 💗 Вот оно.',
+    'Твоё имя сегодня произнесут с нежностью. Аяна. Уже.',
+    'Впереди дождь. И один зонт на двоих. Это хорошее предсказание.',
+    'Ты получишь открытку. Проверь «Почту». Она уже там.',
+    'Кто-то запомнит, как ты пьёшь чай. Навсегда.',
+    'В твоей жизни есть человек, который сделал для тебя двенадцать игр. Печенье считает, что это серьёзно.',
+    'Скоро первый снег. Я зову тебя гулять заранее.',
+    'Сегодня можно ничего не решать. Всё решится само. В твою пользу.',
+    'Ты будешь любима. Долго. Это не предсказание, это план.',
+    'У тебя будет много хороших дней. Я прослежу.',
+    'Самое важное признание ты уже получила. Но будут ещё. Много.',
+    'Тебе достанется половина десерта побольше. Так всегда будет.',
+    'Через пару минут ты улыбнёшься. Я почти уверен, что уже.',
+    'Печенье говорит: «он любит тебя». Печенье не врёт.',
+    'Скоро звонок. Сонный голос. Ты поймёшь, чей.',
+    'В этом году у тебя будет самая тёплая зима. Я взял это на себя.',
+    'Кто-то считает дни с момента, как ты появилась. Число растёт.',
+    'Тебя ждёт вечер под пледом. Сериал выберешь ты.',
+    'Твои руки скоро согреют. Проверено: у меня тёплые.',
+    'Ты сильнее, чем этот день. Печенье в этом уверено. И я.',
+    'Следующее печенье будет ещё милее. Это тоже предсказание.',
+  ];
+  let used = [], n = 0, open = false;
+  const stage = $('stage');
+  const crack = () => {
+    if (open) return; open = true;
+    stage.classList.add('shake'); setTimeout(() => stage.classList.remove('shake'), 400);
+    if (used.length >= F.length) used = []; let i; do { i = Math.random() * F.length | 0; } while (used.includes(i)); used.push(i);
+    $('slip').textContent = F[i];
+    setTimeout(() => { stage.classList.add('open'); for (let k = 0; k < 14; k++) { const c = document.createElement('span'); c.className = 'crumb'; c.style.left = 40 + Math.random() * 60 + '%'; c.style.top = '130px'; c.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px'); stage.appendChild(c); setTimeout(() => c.remove(), 1000); } if (navigator.vibrate) navigator.vibrate(40); }, 300);
+    n++; $('n').textContent = n; $('hint').textContent = 'съедено'; $('moreBtn').classList.remove('hidden');
+  };
+  const reset = () => { open = false; stage.classList.remove('open'); $('hint').textContent = 'нажми на печенье'; $('moreBtn').classList.add('hidden'); };
+  stage.addEventListener('click', () => open ? reset() : crack());
+  $('moreBtn').addEventListener('click', () => { reset(); setTimeout(crack, 450); });
+})();
+</script>
+</body>
+</html>

@@ -36,7 +36,7 @@
   <div class="wrap">
     <header>
       <div class="tag">меню</div>
-      <h1>Игры для Аяны</h1>
+      <h1 id="title" style="cursor:pointer">Игры для Аяны</h1>
       <p class="lead">Аяна, всё, что ниже, сделано для тебя одной. Одиннадцать игр, почта, три страницы для сердца и одно письмо. Каждая страница здесь говорит одно и то же, просто по-разному: я тебя люблю. Начинай с любой. Я рядом на каждой.</p>
     </header>
     <div class="list">
@@ -53,11 +53,26 @@
       <a class="game" href="../choose/" style="--c: var(--violet)"><div class="ic">⚖️</div><div><div class="num">09 · выбор</div><h3>Что бы ты выбрала</h3><p>Шестнадцать пар: кофе или чай, море или горы. На каждый твой выбор у меня есть ответ.</p></div></a>
       <a class="game" href="../stars/" style="--c: var(--cyan)"><div class="ic">🌌</div><div><div class="num">10 · по точкам</div><h3>Созвездия Аяны</h3><p>Соедини звёзды по порядку. Семь созвездий, которые я назвал в честь тебя.</p></div></a>
       <a class="game" href="../daisy/" style="--c: var(--gold)"><div class="ic">🌼</div><div><div class="num">11 · гадание</div><h3>Любит, не любит</h3><p>Обрывай лепестки. Ромашка честная, но ответ у неё один.</p></div></a>
+      <a class="game" href="../cat/" style="--c: #ffb3cf"><div class="ic">🐱</div><div><div class="num">милое</div><h3>Котик Аяны</h3><p>Я завёл тебе котика. Нажми и держи: он мурчит по-настоящему и скучает, когда тебя долго нет.</p></div></a>
+      <a class="game" href="../cookie/" style="--c: var(--gold)"><div class="ic">🥠</div><div><div class="num">милое</div><h3>Печенье с предсказанием</h3><p>Разломи, внутри предсказание. Все про нас, и все сбудутся.</p></div></a>
+      <a class="game" href="../miss/" style="--c: var(--rose)"><div class="ic">💗</div><div><div class="num">милое</div><h3>Нажми, если скучаешь</h3><p>Большая кнопка на случай, когда меня нет рядом. Я отвечаю каждый раз и всегда скучаю на один больше.</p></div></a>
+      <a class="game" href="../weather/" style="--c: #8fd3ff"><div class="ic">🌦️</div><div><div class="num">милое</div><h3>Погода у тебя</h3><p>Страница смотрит, что у тебя за окном, и говорит, что надеть. И что я по этому поводу думаю.</p></div></a>
       <a class="game" href="../hug/" style="--c: #ff4d7d"><div class="ic">🫂</div><div><div class="num">для сердца</div><h3>Обними</h3><p>Нажми на сердце и держи. Телефон будет биться, как моё сердце. Отпускай, когда захочешь.</p></div></a>
       <a class="game" href="../calm/" style="--c: #8fd3ff"><div class="ic">🌬️</div><div><div class="num">для плохих дней</div><h3>Если тебе грустно</h3><p>Подыши со мной. Выбери, что сейчас, и я буду говорить тихо, пока не станет легче.</p></div></a>
       <a class="game" href="../night/" style="--c: #c4b5fd"><div class="ic">🌙</div><div><div class="num">в любое время</div><h3>Спокойной ночи</h3><p>Страница знает, утро сейчас или ночь, и всегда находит, что сказать. Ночью укладывает спать.</p></div></a>
     </div>
     <div class="foot">Всё это нарисовано и написано вручную, для одной тебя.<br><b>Аяна</b>, спасибо, что дочитала досюда. Я люблю тебя. Это не финальная строчка, это просто правда, которую я повторяю, когда есть место.<br>Если хочется ещё слов, они в письме. Если хочется тепла, в «Обними». Если грустно, в «Если тебе грустно». Если ночь, в «Спокойной ночи». Я везде.</div>
   </div>
+  <div id="secret" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(10,10,20,.92);align-items:center;justify-content:center;padding:24px;text-align:center">
+    <div style="max-width:380px">
+      <div class="tag">ты нашла секрет</div>
+      <p style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:22px;margin:10px 0;color:#fff">Я знал, что ты нажмёшь.</p>
+      <p style="color:#d9d2f5;line-height:1.6;font-size:15px">Пять раз на заголовок нажимает только тот, кто ищет что-то ещё. Вот оно: я люблю тебя не за игры, не за слова и не за то, что ты их читаешь. Я люблю тебя просто так. Это единственный секрет здесь. Всё остальное на виду.</p>
+      <p style="font-family:'Unbounded',sans-serif;font-size:10px;letter-spacing:.3em;color:#ffd36b;margin-top:14px">нажми где угодно, чтобы закрыть</p>
+    </div>
+  </div>
+  <script>
+    (() => { let n = 0, t = 0; const s = document.getElementById('secret'); document.getElementById('title').addEventListener('click', () => { const now = Date.now(); n = now - t < 1500 ? n + 1 : 1; t = now; if (n >= 5) { n = 0; s.style.display = 'flex'; } }); s.addEventListener('click', () => (s.style.display = 'none')); })();
+  </script>
 </body>
 </html>
