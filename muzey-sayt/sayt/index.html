@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#fbf8f5">
 <meta property="og:title" content="Музей восьмого чуда">
 <meta property="og:description" content="Для Аяны">
 <title>Музей восьмого чуда</title>
@@ -129,6 +128,20 @@ button:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
 .note-card .hand{font-family:var(--hand);font-size:30px;line-height:34px;color:#3a2a2e;margin:0}
 .note-card .from{font-family:var(--hand);font-size:24px;color:var(--rose);align-self:flex-end}
 #mGuide{color:var(--muted);font-size:14px}
+.song-card{width:min(520px,100%);background:var(--paper);border-radius:18px;box-shadow:0 30px 80px rgba(43,36,39,.4);display:flex;flex-direction:column;gap:12px;padding:22px 22px 18px;animation:rise .5s cubic-bezier(.2,.8,.2,1);max-height:calc(100dvh - 90px)}
+.song-top{display:flex;gap:16px;align-items:center}
+.vinyl{width:76px;height:76px;flex:none;border-radius:50%;background:radial-gradient(circle,var(--rose) 0 17%,#1d191b 18% 22%,#2b2427 23% 30%,#1d191b 31% 40%,#2b2427 41% 52%,#1d191b 53% 66%,#2b2427 67%);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.vinyl.spin{animation:spin 2.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.song-card h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0;line-height:1.15}
+.song-card .meta{font-size:12px;color:var(--muted)}
+.lyrics{overflow:auto;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 2px;display:flex;flex-direction:column;gap:14px;min-height:120px}
+.lyrics div{font-size:14px;line-height:1.55}
+.lyrics b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--rose);margin-bottom:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:8px 14px;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--rose);color:#fff}
+.song-bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}.song-bar i{display:block;height:100%;width:0;background:var(--rose)}
 @media (max-width:440px){.panel h3{font-size:19px}.panel p{font-size:13px}.hud-r button{padding:7px 11px;font-size:12px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -145,6 +158,7 @@ button:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
   <div class="hud-r">
     <button id="tourBtn" type="button">Экскурсия</button>
     <button id="viewBtn" type="button" aria-pressed="false">Глазами Аяны</button>
+    <button id="songBtn" type="button" aria-pressed="false">♪ Наша песня</button>
     <button id="musicBtn" type="button" aria-pressed="false">Музыка: выкл</button>
   </div>
 </div>
@@ -222,6 +236,26 @@ button:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
   </div>
 </div>
 
+<div class="veil" id="songV" hidden>
+  <div class="song-card" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+    <div class="song-top">
+      <div class="vinyl" id="vinyl" aria-hidden="true"></div>
+      <div>
+        <div class="eyebrow">Граммофон музея · песня для Аяны</div>
+        <h3 id="sTitle">Восьмое чудо света</h3>
+        <div class="meta">Слова: хранитель музея · о том, как я люблю тебя и как боюсь потерять</div>
+      </div>
+    </div>
+    <div class="song-bar"><i id="sBar"></i></div>
+    <div class="lyrics" id="sLyrics"></div>
+    <div class="row">
+      <button class="cta" id="sPlay" type="button">Слушать</button>
+      <div class="seg" role="group" aria-label="Версия песни"><button id="sV0" type="button" aria-pressed="true">Баллада</button><button id="sV1" type="button" aria-pressed="false">R&amp;B</button></div>
+      <button class="ghost" id="sClose" type="button">Закрыть</button>
+    </div>
+  </div>
+</div>
+
 <div class="veil" id="final" hidden>
   <div class="letter" role="dialog" aria-modal="true" aria-labelledby="fTitle">
     <div class="eyebrow">Главный экспонат · единственный экземпляр в мире</div>
@@ -234,7 +268,7 @@ button:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
     </dl>
     <div id="fLetter"></div>
     <div class="sign" id="fSign"></div>
-    <div class="row"><button class="cta" id="fClose" type="button">Остаться в музее</button></div>
+    <div class="row"><button class="cta" id="fSong" type="button">♪ Включить нашу песню</button><button class="ghost" id="fClose" type="button">Остаться в музее</button></div>
   </div>
 </div>
 
@@ -293,6 +327,8 @@ const EXHIBITS = [
    text:"Вокруг темно, а ты светишься. Так же ты светишься в моей жизни.", video:"media/12.mp4", ratio:540/960}
 ].map((e,i)=>Object.assign({image:"", side:i%2?1:-1, z:Z[Math.floor(i/2)], guide:GUIDES[i]},e));
 const FILM = {title:"Наш фильм", video:"media/film.mp4"};
+const SONGS = [{title:"Восьмое чудо света", label:"Баллада", src:"song.mp3"},{title:"Аяна", label:"R&B", src:"song-rnb.mp3"}];
+const LYRICS = [{"h": "Куплет", "l": ["Девятнадцатое марта, тихий вечер, свет витрин,", "Я ещё не знал тогда, что больше не один.", "Ты смеялась так легко, поправляла прядь волос,", "И я понял в ту секунду: это всё всерьёз."]}, {"h": null, "l": ["Семь чудес давно известны, их считали до меня,", "Но никто из них не видел, как смеёшься ты, Аяна."]}, {"h": "Припев", "l": ["Аяна, ты восьмое чудо света,", "Ты мой март, моя зима и моё лето.", "Я боюсь однажды не найти тебя рядом,", "Не отпускай мою руку, мне больше ничего не надо.", "Аяна, даже если гаснут звёзды,", "Я найду тебя на свете, слышишь, никогда не поздно.", "Я люблю тебя сильнее, чем умею сказать,", "И больше всего на свете боюсь тебя потерять."]}, {"h": "Куплет", "l": ["Ты танцуешь в жёлтой куртке под ночными фонарями,", "Город замирает, и весь мир сейчас за нами.", "Я храню каждую минуту, каждый взгляд и каждый смех,", "Ты одна такая в мире, ты дороже всех."]}, {"h": null, "l": ["Иногда я ночью просыпаюсь в тишине,", "Мне приснилось, что ты где-то, но уже не здесь, не мне.", "Я пишу тебе «ты спишь?» и жду, пока ответишь ты,", "Потому что без тебя пустеют все мечты."]}, {"h": "Припев", "l": ["Аяна, ты восьмое чудо света,", "Ты мой март, моя зима и моё лето.", "Я боюсь однажды не найти тебя рядом,", "Не отпускай мою руку, мне больше ничего не надо.", "Аяна, даже если гаснут звёзды,", "Я найду тебя на свете, слышишь, никогда не поздно.", "Я люблю тебя сильнее, чем умею сказать,", "И больше всего на свете боюсь тебя потерять."]}, {"h": null, "l": ["Если будет трудно, если ссоры и дожди,", "Просто вспомни этот музей и ко мне приходи.", "Я построил его для тебя, в нём горит один свет,", "Семнадцатого сентября родился мой ответ."]}, {"h": "Припев", "l": ["Аяна, ты восьмое чудо света,", "Ты мой март, моя зима и моё лето.", "Я люблю тебя сильнее, чем умею сказать,", "И больше всего на свете боюсь тебя потерять."]}, {"h": null, "l": ["Не уходи... Аяна...", "Ты моё чудо."]}];
 const NOTES = [
   {text:"За то, как ты смеёшься, когда тебе по-настоящему смешно.", pos:[-6.3,0.35,15.2]},
   {text:"За то, что с тобой можно молчать, и это совсем не неловко.", pos:[6.3,0.35,15.2]},
@@ -399,7 +435,7 @@ function setMusic(on){
 let musicWanted=false;
 $("musicBtn").onclick=()=>{ audioInit(); musicWanted=!musicOn; setMusic(!musicOn); };
 function duckMusic(){ if(musicOn) setMusic(false); }
-function restoreMusic(){ if(musicWanted && !musicOn) setMusic(true); }
+function restoreMusic(){ if(typeof songOn!=="undefined" && songOn) return; if(musicWanted && !musicOn) setMusic(true); }
 
 /* ---------- three.js ---------- */
 if(!window.THREE){ $("introText").textContent="Не удалось загрузить 3D. Проверь интернет и обнови страницу."; return; }
@@ -543,6 +579,22 @@ const balloons=[];
   const b=mesh(hg.clone(),std(c,{roughness:.25,metalness:.15})); b.scale.setScalar(.75); b.position.set(x,y,z); scene.add(b);
   const str=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-.3,0),new THREE.Vector3(0,-y+.05,0)]),new THREE.LineBasicMaterial({color:0x9a8f92})); b.add(str);
   balloons.push({b,y,ph:j*1.3}); });
+/* gramophone */
+const gram=new THREE.Group(); gram.position.set(4.7,0,13.6); gram.rotation.y=-2.4; scene.add(gram);
+{ const wood=std(0x6b3f2a,{roughness:.55}), dark=std(0x1d191b,{roughness:.4}), gold=std(0xc9a14a,{metalness:.75,roughness:.3});
+  const top=mesh(new THREE.CylinderGeometry(.42,.42,.04,28),wood); top.position.y=.8; gram.add(top);
+  const leg=mesh(new THREE.CylinderGeometry(.05,.07,.78,12),wood); leg.position.y=.4; gram.add(leg);
+  const foot=mesh(new THREE.CylinderGeometry(.28,.3,.04,20),wood); foot.position.y=.02; gram.add(foot);
+  const box=mesh(new THREE.BoxGeometry(.42,.16,.42),wood); box.position.y=.9; gram.add(box);
+  const disc=mesh(new THREE.CylinderGeometry(.18,.18,.012,28),dark); disc.position.y=.985; gram.add(disc); gram.userData.disc=disc;
+  const lbl=mesh(new THREE.CylinderGeometry(.05,.05,.014,16),std(ROSE)); lbl.position.y=.987; gram.add(lbl); gram.userData.lbl=lbl;
+  const arm=mesh(new THREE.CylinderGeometry(.018,.018,.42,8),gold); arm.position.set(.14,1.15,-.12); arm.rotation.z=.5; gram.add(arm);
+  const horn=mesh(new THREE.ConeGeometry(.26,.5,24,1,true),std(0xc9a14a,{metalness:.7,roughness:.28,side:THREE.DoubleSide})); horn.position.set(.05,1.42,-.1); horn.rotation.set(-.9,0,.3); gram.add(horn);
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(.5,.18),new THREE.MeshBasicMaterial({map:canvasTex(300,108,(x,w,h)=>{ x.fillStyle="#fdfbf8"; x.fillRect(0,0,w,h); x.textAlign="center"; x.fillStyle="#b3243b"; x.font="700 18px Manrope, sans-serif"; x.fillText("НАША ПЕСНЯ",w/2,42); x.fillStyle="#2b2427"; x.font="22px Prata, Georgia, serif"; x.fillText("нажми, чтобы послушать",w/2,80); })}));
+  sign.position.set(0,.86,.215); gram.add(sign);
+  const hit=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,1.8,10),new THREE.MeshBasicMaterial({visible:false})); hit.position.y=.9; gram.add(hit);
+  gram.traverse(m=>{ if(m.isMesh){ m.userData.action={type:"song"}; clickables.push(m);} }); }
+obstacles.push({x:4.7,z:13.6,r:.6});
 
 /* ---------- cinema ---------- */
 const scr=mesh(new THREE.BoxGeometry(6.9,3.95,.08),std(0x1d191b,{roughness:.5}),false); scr.position.set(0,2.4,-HL+.04); scene.add(scr);
@@ -675,6 +727,7 @@ function sit(){
   her.userData.body.rotation.z=.07; her.userData.head.rotation.z=.18;
   $("standBtn").hidden=false; $("prompt").hidden=true; $("hint").style.opacity=0;
   markSeen(EXHIBITS.length);
+  if(songOn) pauseSong();
   if(filmVideo){ duckMusic(); filmVideo.currentTime=0; filmVideo.muted=false;
     filmVideo.play().catch(()=>{ filmVideo.muted=true; filmVideo.play().catch(()=>{}); $("soundBtn").hidden=false; }); }
 }
@@ -726,6 +779,7 @@ function enterInspect(i){
   $("iNo").textContent=`Экспонат № ${i+1} из ${EXHIBITS.length}`; $("iTitle").textContent="«"+e.title+"»";
   $("iMeta").textContent=e.mat+" · "+e.date; $("iText").textContent=e.text+" "+(e.guide||"");
   $("inspect").hidden=false; $("prompt").hidden=true; $("joy").hidden=true; $("hint").style.opacity=0;
+  if(o.video && songOn) inspSound=false;
   if(o.video){ duckMusic(); o.video.currentTime=0; o.video.muted=!inspSound; o.video.play().catch(()=>{ o.video.muted=true; inspSound=false; updSound(); o.video.play().catch(()=>{}); }); }
   updSound();
 }
@@ -748,6 +802,31 @@ let fp=false;
 $("viewBtn").onclick=()=>{ fp=!fp; $("viewBtn").setAttribute("aria-pressed",fp); $("viewBtn").textContent=fp?"Вид со стороны":"Глазами Аяны"; if(fp){ fpPitch=0; toast("Теперь ты смотришь её глазами. Тяни экран, чтобы оглядеться."); } };
 let fpPitch=0, pitch=.4;
 
+/* ---------- song ---------- */
+const songAudio=new Audio(); songAudio.preload="none"; let songIdx=0, songOn=false;
+$("sLyrics").innerHTML=LYRICS.map(b=>"<div>"+(b.h?"<b>"+esc(b.h)+"</b>":"")+b.l.map(esc).join("<br>")+"</div>").join("");
+function songUi(){ $("sPlay").textContent=songOn?"Пауза":"Слушать"; $("vinyl").classList.toggle("spin",songOn); $("songBtn").setAttribute("aria-pressed",songOn);
+  $("sTitle").textContent=SONGS[songIdx].title; [0,1].forEach(k=>$("sV"+k).setAttribute("aria-pressed",k===songIdx)); }
+function playSong(k){
+  if(k!==undefined && k!==songIdx){ songIdx=k; songAudio.src=SONGS[k].src; }
+  if(!songAudio.src) songAudio.src=SONGS[songIdx].src;
+  duckMusic(); if(filmVideo && !filmVideo.paused) filmVideo.pause();
+  if(inspect!==null){ const v=exhibitObjs[inspect].video; if(v) v.muted=true; inspSound=false; updSound(); }
+  songAudio.play().then(()=>{ songOn=true; songUi(); }).catch(()=>{ songOn=false; songUi(); toast("Нажми «Слушать», чтобы включить песню."); });
+}
+function pauseSong(){ songAudio.pause(); songOn=false; songUi(); }
+songAudio.addEventListener("ended",()=>{ songOn=false; songUi(); restoreMusic(); });
+songAudio.addEventListener("timeupdate",()=>{ if(songAudio.duration) $("sBar").style.width=(songAudio.currentTime/songAudio.duration*100)+"%"; });
+function openSong(){ $("songV").hidden=false; openModal="song"; songUi(); $("sPlay").focus({preventScroll:true}); }
+function closeSong(){ $("songV").hidden=true; openModal=null; }
+$("sPlay").onclick=()=>{ songOn?pauseSong():playSong(); };
+$("sV0").onclick=()=>playSong(0); $("sV1").onclick=()=>playSong(1);
+$("sClose").onclick=closeSong;
+$("songV").addEventListener("click",e=>{ if(e.target.id==="songV") closeSong(); });
+$("songBtn").onclick=()=>{ if(songOn){ pauseSong(); restoreMusic(); } else { playSong(); openSong(); } };
+$("fSong").onclick=()=>{ songOn?pauseSong():playSong(0); $("fSong").textContent=songOn?"Пауза":"♪ Включить нашу песню"; };
+songAudio.addEventListener("play",()=>{ $("fSong").textContent="Пауза"; }); songAudio.addEventListener("pause",()=>{ $("fSong").textContent="♪ Включить нашу песню"; });
+
 /* ---------- actions ---------- */
 function act(a){
   if(sitting && a.type!=="bench") stand();
@@ -756,6 +835,7 @@ function act(a){
   else if(a.type==="note"){ const n=noteObjs[a.i], d=Math.hypot(her.position.x-n.position.x,her.position.z-n.position.z);
     if(d<1.7) openNote(a.i); else { const v=new THREE.Vector3(n.position.x*.88,0,n.position.z>0?n.position.z-.6:n.position.z+.6); walkTo(v,()=>openNote(a.i)); } }
   else if(a.type==="bench"){ if(!sitting) walkTo(new THREE.Vector3(0,0,-9.1),sit); }
+  else if(a.type==="song"){ const d=Math.hypot(her.position.x-4.7,her.position.z-13.6); if(d<2) openSong(); else walkTo(new THREE.Vector3(3.9,0,12.8),()=>{ faceGoal=Math.atan2(.8,.8); openSong(); }); }
   else if(a.type==="pedestal"){ walkTo(new THREE.Vector3(0,0,2.45),()=>{ faceGoal=Math.PI; setTimeout(()=>{
       if(unlocked && veilT>=1) openFinal(); else if(unlocked) toast("Бархат поднимается…");
       else toast(`Восьмое чудо пока под бархатом. Осмотри ещё ${TOTAL-seen.size}.`); },350); }); }
@@ -767,6 +847,7 @@ function openExhibit(i){
   const e=EXHIBITS[i];
   $("mNo").textContent="Экспонат № "+(i+1); $("mTitle").textContent="«"+e.title+"»"; $("mMat").textContent=e.mat; $("mDate").textContent=e.date; $("mText").textContent=e.text; $("mGuide").textContent=e.guide||"";
   const box=$("mMedia"); box.innerHTML="";
+  if(songOn) pauseSong();
   if(e.video){ const v=document.createElement("video"); v.src=e.video; v.controls=true; v.playsInline=true; v.setAttribute("playsinline",""); v.loop=true; box.appendChild(v);
     duckMusic(); v.play().catch(()=>{ v.muted=true; v.play().catch(()=>{}); }); }
   else if(e.image){ const im=new Image(); im.src=e.image; im.alt=e.title; box.appendChild(im); }
@@ -777,9 +858,9 @@ function openExhibit(i){
 function closeExhibit(){ $("mMedia").innerHTML=""; $("modal").hidden=true; openModal=null; if(inspect!==null){ const v=exhibitObjs[inspect].video; if(v){ v.muted=!inspSound; v.play().catch(()=>{}); } } else restoreMusic(); }
 $("mClose").onclick=closeExhibit;
 $("modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeExhibit(); });
-function openFinal(){ $("final").hidden=false; openModal="final"; for(let k=0;k<20;k++) setTimeout(()=>emit(new THREE.Vector3(0,1.6,1),1.2),k*60); $("fClose").focus({preventScroll:true}); if(actx && !musicOn){ musicWanted=true; setMusic(true);} }
+function openFinal(){ $("final").hidden=false; openModal="final"; for(let k=0;k<20;k++) setTimeout(()=>emit(new THREE.Vector3(0,1.6,1),1.2),k*60); $("fSong").focus({preventScroll:true}); playSong(0); }
 $("fClose").onclick=()=>{ $("final").hidden=true; openModal=null; };
-addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(openModal==="modal") closeExhibit(); else if(openModal==="final") $("fClose").click(); else if(openModal==="note") $("nClose").click(); else exitInspect(); } });
+addEventListener("keydown",e=>{ if(e.key==="Escape"){ if(openModal==="modal") closeExhibit(); else if(openModal==="final") $("fClose").click(); else if(openModal==="note") $("nClose").click(); else if(openModal==="song") closeSong(); else exitInspect(); } });
 
 /* ---------- input ---------- */
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
@@ -884,6 +965,7 @@ function loop(){
   // world
   noteObjs.forEach(g=>{ if(!g.visible) return; const u=g.userData; g.position.y=u.base+Math.sin(t*2+u.ph)*.05; g.rotation.y=Math.sin(t*.8+u.ph)*.6; u.glow.material.opacity=.55+.4*Math.sin(t*3+u.ph); });
   balloons.forEach(o=>{ o.b.position.y=o.y+Math.sin(t*1.1+o.ph)*.08; o.b.rotation.y=Math.sin(t*.6+o.ph)*.4; });
+  if(songOn){ gram.userData.disc.rotation.y+=dt*3.5; if(Math.random()<dt*1.5) emit(new THREE.Vector3(4.7,1.6,13.6),.5); }
   heart.rotation.y=t*.8; heart.position.y=1.4+Math.sin(t*1.5)*.04;
   if(veilT>=0 && veilT<1){ veilT=Math.min(1,veilT+dt*.35); const e=veilT*veilT; velvet.position.y=1.5+e*2.2; knot.position.y=2.07+e*2.2; velvet.material.opacity=knot.material.opacity=1-veilT; heartGlow.intensity=veilT*1.1;
     if(Math.random()<.5) emit(new THREE.Vector3(0,1.4,1),.9); if(veilT>=1){ velvet.visible=knot.visible=false; } }
@@ -904,11 +986,12 @@ function updateNear(){
     exhibitObjs.forEach((o,i)=>{ const d=Math.hypot(her.position.x-o.stand.x,her.position.z-o.stand.z); if(d<2.2 && d<bd){bd=d;best={type:"exhibit",i};} });
     const db=Math.hypot(her.position.x,her.position.z+9.2); if(db<2.4 && db<bd){bd=db;best={type:"bench"};}
     const dp=Math.hypot(her.position.x,her.position.z-2.3); if(dp<2 && dp<bd){bd=dp;best={type:"pedestal"};}
+    const dg=Math.hypot(her.position.x-4.7,her.position.z-13.6); if(dg<2 && dg<bd){bd=dg;best={type:"song"};}
   }
   const key=(best?JSON.stringify(best):"")+(target?"*":""); if(key===nearKey) return; nearKey=key; nearAct=best;
   const p=$("prompt");
   if(!best || target){ p.hidden=true; return; }
-  p.textContent = best.type==="note" ? "Прочитать записку" : best.type==="exhibit" ? `Подойти к «${EXHIBITS[best.i].title}»` : best.type==="bench" ? "Сесть рядом и смотреть фильм" : (unlocked ? "Открыть восьмое чудо света" : "Что под бархатом?");
+  p.textContent = best.type==="song" ? "♪ Послушать нашу песню" : best.type==="note" ? "Прочитать записку" : best.type==="exhibit" ? `Подойти к «${EXHIBITS[best.i].title}»` : best.type==="bench" ? "Сесть рядом и смотреть фильм" : (unlocked ? "Открыть восьмое чудо света" : "Что под бархатом?");
   p.hidden=false;
 }
 function updateVideos(){
